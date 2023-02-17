@@ -20,6 +20,12 @@ def generate_launch_description():
         'launch',
         'urg_node2.launch.py'
     )
+    # ROS TCP ENDPOINT起動ファイルのパス設定
+    endpoint_launch_path = os.path.join(
+        get_package_share_directory('main_executor'),
+        'launch',
+        'tcp_endpoint.launch.py'
+    )
     # USB CANの軌道ファイルのパス設定
     slcan_launch_path = os.path.join(
         get_package_share_directory('main_executor'),
@@ -42,6 +48,10 @@ def generate_launch_description():
     urg_launch = launch.actions.IncludeLaunchDescription(
         PythonLaunchDescriptionSource([urg_launch_path])
     )
+    # ROS TCP ENDPOINT起動の作成
+    endpoint_launch = launch.actions.IncludeLaunchDescription(
+        PythonLaunchDescriptionSource([endpoint_launch_path])
+    )
     # 軌道計画機ノードの作成
     trajectory_planner_node = Node(
         package = 'spline_pid',
@@ -57,6 +67,8 @@ def generate_launch_description():
         subprocess.run(['sudo', 'sh', slcan_launch_path])
     if(launch_params['scan'] is True):
         launch_discription.add_entity(urg_launch)
+    if(launch_params['tcp_endpoint'] is True):
+        launch_discription.add_entity(endpoint_launch)
     if(launch_params['trajectory_planner'] is True):
         launch_discription.add_entity(trajectory_planner_node)
 

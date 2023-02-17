@@ -1,0 +1,3 @@
+[submodule "rc23pkgs"]
+	path = rc23pkgs
+	url = https://github.com/KITrobopuro/ros2-rc23pkgs

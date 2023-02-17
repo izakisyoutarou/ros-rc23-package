@@ -1,0 +1,48 @@
+launch: #起動パラメータ
+  ros__parameters:
+    slcan: false
+    scan: false
+    trajectory_planner: true
+
+/**:  #ワイルドカード(ここのパラメータは全ノードから読める: <名前に注意>)
+  ros__parameters:
+    initial_pose: [-5.45, 0.0, 0.0]  #初期位置[x,y,yaw]
+    # 並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
+    linear_max_vel: 6.0
+    linear_max_acc: 12.0
+    linear_max_dec: 12.0
+    linear_max_jer: 0.0
+    # 回転  速度[deg/s],加速度[deg/s^2],加減速度[-deg/s^2],躍度[deg/s^3]
+    angular_max_vel: 90.0
+    angular_max_acc: 180.0
+    angular_max_dec: 180.0
+    angular_max_jer: 0.0
+
+spline_pid_node:
+  ros__parameters:
+    interval_ms: 5     #サイクル周期
+    curvature_attenuation_rate: 0.0 #曲率の速度の減衰>=0 (0だと減衰なし)
+    linear_planner_vel_limit_gain: 0.6  #速度計画機の速度上限値にかけるゲイン
+
+    linear_planner_gain: 1.5 #並進速度計画機ゲイン
+    linear_pos_gain: 2.5  #並進位置ズレのゲイン
+    linear_pos_integral_gain: 0.0  #並進位置ズレの積分ゲイン
+
+    angular_planner_gain: 0.01 #回転速度計画機ゲイン
+    angular_pos_gain: 2.0 #回転位置ズレのゲイン
+    angular_pos_integral_gain: 0.0  #回転位置ズレの積分ゲイン
+
+    linear_pos_tolerance: 0.05  #並進到達位置の許容誤差[m]
+    angular_pos_tolerance: 1.0  #回転到達位置の許容誤差[deg]
+
+mcl_2d_node:
+  ros__parameters:
+    num_of_particle: 50     #粒子数
+    odom_convariance:
+      param1: 0.0   #回転成分から生まれる回転成分のズレ
+      param2: 0.0   #並進成分から生まれる回転成分のズレ
+      param3: 0.0   #並進成分から生まれる並進成分のズレ
+      param4: 0.0   #回転成分から生まれる並進成分のズレ
+      param5: 0.01   #Xのズレ
+      param6: 0.01   #Yのズレ
+    tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]

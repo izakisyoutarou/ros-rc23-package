@@ -56,6 +56,7 @@ def generate_launch_description():
     trajectory_planner_node = Node(
         package = 'spline_pid',
         executable = 'spline_trajectories.py',
+        parameters= [config_file_path],
         output='screen'
     )
 

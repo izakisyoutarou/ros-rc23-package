@@ -26,9 +26,9 @@ def generate_launch_description():
         'launch',
         'tcp_endpoint.launch.py'
     )
-    # USB CANの軌道ファイルのパス設定
+    # USB CAN起動ファイルのパス設定
     slcan_launch_path = os.path.join(
-        get_package_share_directory('main_executor'),
+        get_package_share_directory('socketcan_interface'),
         'config',
         'slcan_add.sh'
     )

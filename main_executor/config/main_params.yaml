@@ -10,8 +10,8 @@ launch: #起動パラメータ
     initial_pose: [-5.45, 0.0, 0.0]  #初期位置[x,y,yaw]
     # 並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
     linear_max_vel: 6.0
-    linear_max_acc: 12.0
-    linear_max_dec: 12.0
+    linear_max_acc: 9.0
+    linear_max_dec: 9.0
     linear_max_jer: 0.0
     # 回転  速度[deg/s],加速度[deg/s^2],加減速度[-deg/s^2],躍度[deg/s^3]
     angular_max_vel: 90.0

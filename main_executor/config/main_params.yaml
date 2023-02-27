@@ -8,7 +8,8 @@ launch: #起動パラメータ
 /**:  #ワイルドカード(ここのパラメータは全ノードから読める: <名前に注意>)
   ros__parameters:
     initial_pose: [-5.45, 0.0, 0.0]  #初期位置[x,y,yaw]
-    # 並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
+    
+    # 自動の並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
     linear_max_vel: 6.0
     linear_max_acc: 12.0
     linear_max_dec: 12.0
@@ -18,6 +19,16 @@ launch: #起動パラメータ
     angular_max_acc: 180.0
     angular_max_dec: 180.0
     angular_max_jer: 0.0
+
+controller_interface_node:
+  ros__parameters:
+    # 手動の並進　速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
+    manual_linear_max_vel: 3.0
+    manual_linear_max_acc: 5.0
+    manual_linear_max_dec: 6.0
+    manual_linear_max_jer: 0.0
+
+    heartbeat_ms: 10 #ハートビート周期[ms]
 
 spline_pid_node:
   ros__parameters:

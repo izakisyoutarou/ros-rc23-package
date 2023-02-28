@@ -28,7 +28,7 @@ controller_interface_node:
     manual_linear_max_dec: 6.0
     manual_linear_max_jer: 0.0
 
-    heartbeat_ms: 10 #ハートビート周期[ms]
+    heartbeat_ms: 100 #ハートビート周期[ms]
 
     #RobotControll.msgのデフォルト値
     defalt_is_restart: false

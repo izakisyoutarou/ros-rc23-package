@@ -31,8 +31,8 @@ controller_interface_node:
     heartbeat_ms: 100 #ハートビート周期[ms]
 
     #RobotControll.msgのデフォルト値
-    defalt_is_restart: false
-    defalt_is_autonomy: false 
+    defalt_restart_flag: false
+    defalt_autonomous_flag: false 
 
 spline_pid_node:
   ros__parameters:

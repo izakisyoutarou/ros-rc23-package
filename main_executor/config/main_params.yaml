@@ -52,3 +52,22 @@ mcl_2d_node:
       param5: 0.01   #Xのズレ
       param6: 0.01   #Yのズレ
     tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]
+
+
+injection_param_calculator_node:
+  ros__parameters:
+    ring_weight: 0.10  #リングの質量
+    gravitational_accelerastion: 9.80665  #重力加速度
+    air_resistance_coefficient: 0.104109  #空気抵抗係数
+    injection_length: 0.30  #射出機構の長さ
+    injection_arm_length: 0.10  #射出機構の腕の長さ
+    foundation_hight: 0.2636  #射出機構の地面からの高さ
+    first_velocity: 5.0  #初速度の初期値
+    angle_lim_max: 45.0  #最大射角
+    angle_lim_min: 15.0  #最小射角
+    velocity_lim_max: 10.0 #最大初速度
+    angle_choice: 45.0  #リングが入りやすい角度
+    angle_bounds: 40.0  #射角の境界
+    eps: 0.000001
+    max_loop: 100  #ニュートン法の最大繰り返し数
+

@@ -2,7 +2,7 @@ launch: #起動パラメータ
   ros__parameters:
     slcan: false
     scan: false
-    tcp_endpoint: false
+    tcp_endpoint: true
     trajectory_planner: true
 
 /**:  #ワイルドカード(ここのパラメータは全ノードから読める: <名前に注意>)
@@ -33,9 +33,11 @@ controller_interface_node:
 
     heartbeat_ms: 100 #ハートビート周期[ms]
 
-    #RobotControll.msgのデフォルト値
+    #リスタート、緊急、手自動のデフォルト値
     defalt_restart_flag: false
-    defalt_autonomous_flag: false 
+    defalt_emergency_flag: false
+    defalt_autonomous_flag: false
+
 
 spline_pid_node:
   ros__parameters:

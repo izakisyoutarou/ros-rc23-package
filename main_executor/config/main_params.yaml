@@ -8,7 +8,8 @@ launch: #起動パラメータ
 /**:  #ワイルドカード(ここのパラメータは全ノードから読める: <名前に注意>)
   ros__parameters:
     initial_pose: [-5.45, 0.0, 0.0]  #初期位置[x,y,yaw]
-    # 並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
+    
+    # 自動の並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
     linear_max_vel: 6.0
     linear_max_acc: 12.0
     linear_max_dec: 12.0
@@ -18,6 +19,25 @@ launch: #起動パラメータ
     angular_max_acc: 180.0
     angular_max_dec: 180.0
     angular_max_jer: 0.0
+
+controller_interface_node:
+  ros__parameters:
+    # 手動の並進　速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
+    linear_max_vel: 3.0
+    linear_max_acc: 6.0
+    linear_max_dec: 6.0
+    # 回転  速度[deg/s],加速度[deg/s^2],加減速度[-deg/s^2],躍度[deg/s^3]
+    angular_max_vel: 45.0
+    angular_max_acc: 180.0
+    angular_max_dec: 180.0
+
+    heartbeat_ms: 100 #ハートビート周期[ms]
+
+    #リスタート、緊急、手自動のデフォルト値
+    defalt_restart_flag: false
+    defalt_emergency_flag: false
+    defalt_autonomous_flag: false
+
 
 spline_pid_node:
   ros__parameters:
@@ -58,16 +78,14 @@ injection_param_calculator_node:
   ros__parameters:
     ring_weight: 0.10  #リングの質量
     gravitational_accelerastion: 9.80665  #重力加速度
-    air_resistance_coefficient: 0.104109  #空気抵抗係数
-    injection_length: 0.30  #射出機構の長さ
-    injection_arm_length: 0.10  #射出機構の腕の長さ
+    air_resistance_coefficient: 0.005321687  #空気抵抗係数
+    injection_length: 0.41  #射出機構の長さ
     foundation_hight: 0.2636  #射出機構の地面からの高さ
-    first_velocity: 5.0  #初速度の初期値
-    angle_lim_max: 45.0  #最大射角
-    angle_lim_min: 15.0  #最小射角
-    velocity_lim_max: 10.0 #最大初速度
+    calculat_first_velocity: 5.0  #初速度の初期値
+    velocity_lim_max: 15.0 #最大初速度
     angle_choice: 45.0  #リングが入りやすい角度
     angle_bounds: 40.0  #射角の境界
-    eps: 0.000001
     max_loop: 100  #ニュートン法の最大繰り返し数
-
+    pitch_limit: [15.0,45.0]  #射角の最小最大
+    yow_limit_m0: [0.0,90.0] #左の射出機構の方向角の最小最大
+    yow_limit_m1: [-90.0,0.0] #右の射出機構の方向角の最小最大

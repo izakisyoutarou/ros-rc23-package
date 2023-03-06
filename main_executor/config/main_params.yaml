@@ -33,10 +33,13 @@ controller_interface_node:
 
     heartbeat_ms: 100 #ハートビート周期[ms]
 
-    #リスタート、緊急、手自動のデフォルト値
+    udp_port: 5000 #udpのport設定
+
+    #リスタート、緊急、足回りの手自動、上物の手自動のデフォルト値
     defalt_restart_flag: false
     defalt_emergency_flag: false
-    defalt_autonomous_flag: false
+    defalt_wheel_autonomous_flag: false
+    defalt_injection_autonomous_flag: false
 
 
 spline_pid_node:

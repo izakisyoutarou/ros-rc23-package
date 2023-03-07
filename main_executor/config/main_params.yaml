@@ -52,3 +52,12 @@ mcl_2d_node:
       param5: 0.01   #Xのズレ
       param6: 0.01   #Yのズレ
     tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]
+
+RANSAC_localization:
+  ros__parameters:
+    laser_weight: 1.0 #lidarの重み
+    odom_weight_liner: 1.0e-1
+    odom_weight_angler: 1.0e-1
+    trial_num: 40
+    inlier_dist_threshold: 0.01
+    tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]

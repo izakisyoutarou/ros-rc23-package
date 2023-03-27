@@ -37,12 +37,16 @@ controller_interface_node:
 
     heartbeat_ms: 100 #ハートビート周期[ms]
     
-    #リスタート、緊急、足回りの手自動、上物の手自動のデフォルト値
+    #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角のデフォルト値
     defalt_restart_flag: false
     defalt_emergency_flag: true
     defalt_wheel_autonomous_flag: false
     defalt_injection_autonomous_flag: true
+    defalt_pitch: 45.0
 
+controller_common_proces_node:
+  ros__parameters:
+    pole_btn_ms: 100
 
 spline_pid_node:
   ros__parameters:

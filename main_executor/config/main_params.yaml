@@ -86,6 +86,6 @@ injection_param_calculator_node:
     angle_choice: 45.0  #リングが入りやすい角度
     angle_bounds: 40.0  #射角の境界
     max_loop: 100  #ニュートン法の最大繰り返し数
-    pitch_limit: [15.0,45.0]  #射角の最小最大
-    yow_limit_m0: [0.0,90.0] #左の射出機構の方向角の最小最大
-    yow_limit_m1: [-90.0,0.0] #右の射出機構の方向角の最小最大
+    pitch_limit: [45.0,56.5]  #射角の最小最大
+    yow_limit_m0: [-90,0.0] #左の射出機構の方向角の最小最大
+    yow_limit_m1: [0.0,90.0] #右の射出機構の方向角の最小最大

@@ -23,7 +23,7 @@ namespace injection_param_calculator{
         pitch_limit(get_parameter("pitch_limit").as_double_array())
         {
             _sub_injection_command = this->create_subscription<injection_interface_msg::msg::InjectionCommand>(
-                "injcetion_command_m"+to_string(mech_num),
+                "injection_command_m"+to_string(mech_num),
                 _qos,
                 std::bind(&InjectionParamCalculator::callback_injection,this,std::placeholders::_1)
             );
@@ -108,7 +108,7 @@ namespace injection_param_calculator{
         //auto isConvergenced = std::make_shared<std_msgs::msg::Bool>();
         bool isAiming = false;
         while(!isAiming){
-            if(!(dtor(yow_limit[0]) < injection_comand.direction && injection_comand.direction < dtor(yow_limit[1]))){
+            if(!(dtor(yow_limit[0]) <= injection_comand.direction && injection_comand.direction <= dtor(yow_limit[1]))){
                 //isConvergenced->data = false;
                 isConvergenced = false;
                 RCLCPP_INFO(this->get_logger(),"mech_num: %d 範囲外です!!",mech_num,injection_comand.direction);

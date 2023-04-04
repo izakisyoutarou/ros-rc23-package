@@ -27,7 +27,7 @@ namespace injection_param_calculator{
             double diff(double v0);
             void calculateElevation();
             bool calculateVelocity();
-            std::string int_to_string(int mech_num);
+            // std::string int_to_string(int mech_num);
 
             injection_interface_msg::msg::InjectionCommand injection_comand;
             double velocity;

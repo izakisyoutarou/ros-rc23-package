@@ -108,7 +108,7 @@ namespace injection_param_calculator{
         //auto isConvergenced = std::make_shared<std_msgs::msg::Bool>();
         bool isAiming = false;
         while(!isAiming){
-            if(!(dtor(yow_limit[0]) < injection_comand.direction && injection_comand.direction < dtor(yow_limit[1]))){
+            if(!(dtor(yow_limit[0]) <= injection_comand.direction && injection_comand.direction <= dtor(yow_limit[1]))){
                 //isConvergenced->data = false;
                 isConvergenced = false;
                 RCLCPP_INFO(this->get_logger(),"mech_num: %d 範囲外です!!",mech_num,injection_comand.direction);

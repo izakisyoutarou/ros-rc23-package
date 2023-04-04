@@ -44,9 +44,9 @@ controller_interface_node:
     defalt_injection_autonomous_flag: true
     defalt_injection_m0_flag: true
     defalt_pitch: 45.0
-    # udp_port_ER_main: 50000
-    # udp_port_ER_sub: 51000
-    # udp_port_RR: 52000
+    udp_port_ER_main: 50000
+    udp_port_ER_sub: 51000
+    udp_port_RR: 52000
 
 # controller_common_proces_node:
 #   ros__parameters:
@@ -100,8 +100,8 @@ injection_param_calculator_node:
     angle_bounds: 40.0  #射角の境界
     max_loop: 100  #ニュートン法の最大繰り返し数
     pitch_limit: [15.0,45.0]  #射角の最小最大
-    yow_limit_m0: [0.0,90.0] #左の射出機構の方向角の最小最大
-    yow_limit_m1: [-90.0,0.0] #右の射出機構の方向角の最小最大
+    yow_limit_m1: [-90.0,0.0] #左の射出機構の方向角の最小最大
+    yow_limit_m0: [0.0,90.0] #右の射出機構の方向角の最小最大
 
 injection_interface_node:
   ros__parameters:

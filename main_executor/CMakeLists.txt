@@ -10,6 +10,8 @@ find_package(mcl_2d REQUIRED)
 find_package(controller_interface REQUIRED)
 find_package(spline_pid REQUIRED)
 find_package(injection_param_calculator REQUIRED)
+find_package(injection_interface REQUIRED)
+
 add_executable(main_exec
         src/main.cpp
         )
@@ -21,6 +23,7 @@ ament_target_dependencies(main_exec
         controller_interface
         spline_pid
         injection_param_calculator
+        injection_interface
         )
 
 target_include_directories(main_exec

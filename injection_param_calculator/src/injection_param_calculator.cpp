@@ -23,7 +23,7 @@ namespace injection_param_calculator{
         pitch_limit(get_parameter("pitch_limit").as_double_array())
         {
             _sub_injection_command = this->create_subscription<injection_interface_msg::msg::InjectionCommand>(
-                "injcetion_command_m"+to_string(mech_num),
+                "injection_command_m"+to_string(mech_num),
                 _qos,
                 std::bind(&InjectionParamCalculator::callback_injection,this,std::placeholders::_1)
             );

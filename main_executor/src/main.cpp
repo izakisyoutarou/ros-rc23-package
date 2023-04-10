@@ -5,6 +5,7 @@
 #include "spline_pid/spline_pid_node.hpp"
 #include "injection_interface/injection_interface_node.hpp"
 #include "injection_param_calculator/injection_param_calculator.hpp"
+#include "RANSAC_localization/RANSAC_localization.hpp"
 
 int main(int argc, char * argv[]){
     rclcpp::init(argc,argv);
@@ -15,7 +16,8 @@ int main(int argc, char * argv[]){
     nodes_option.automatically_declare_parameters_from_overrides(true);
 
     auto socketcan_node = std::make_shared<socketcan_interface::SocketcanInterface>(nodes_option);
-    auto mcl_2d_node = std::make_shared<mcl_2d::Mcl2D>(nodes_option);
+    // auto mcl_2d_node = std::make_shared<mcl_2d::Mcl2D>(nodes_option);
+    auto RANSAC_localization = std::make_shared<self_localization::RANSACLocalization>(nodes_option);
     auto controller_commonproces_node = std::make_shared<controller_interface::CommonProces>(nodes_option);
     auto controller_node = std::make_shared<controller_interface::SmartphoneGamepad>(nodes_option);
     auto injection_interface_node0 = std::make_shared<injection_interface::InjectionInterface>(nodes_option, 0);
@@ -25,7 +27,8 @@ int main(int argc, char * argv[]){
     auto spline_pid_node = std::make_shared<spline_pid::SplinePid>(nodes_option);
 
     //exec.add_node(socketcan_node);
-    exec.add_node(mcl_2d_node);
+    // exec.add_node(mcl_2d_node);
+    exec.add_node(RANSAC_localization);
     exec.add_node(controller_commonproces_node);
     exec.add_node(controller_node);
     exec.add_node(injection_interface_node0);

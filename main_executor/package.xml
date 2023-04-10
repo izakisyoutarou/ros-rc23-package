@@ -17,6 +17,7 @@
   <depend>controller_interface</depend>
   <depend>injection_interface</depend>
   <depend>injection_param_calculator</depend>
+  <depend>RANSAC_localization</depend>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 

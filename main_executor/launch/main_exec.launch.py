@@ -70,8 +70,8 @@ def generate_launch_description():
         launch_discription.add_entity(urg_launch)
     if(launch_params['tcp_endpoint'] is True):
         launch_discription.add_entity(endpoint_launch)
-    if(launch_params['trajectory_planner'] is True):
-        launch_discription.add_entity(trajectory_planner_node)
+    # if(launch_params['trajectory_planner'] is True):
+        # launch_discription.add_entity(trajectory_planner_node)
 
 
     launch_discription.add_entity(main_exec_node)

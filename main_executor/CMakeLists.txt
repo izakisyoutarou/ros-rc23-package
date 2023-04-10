@@ -11,6 +11,7 @@ find_package(controller_interface REQUIRED)
 find_package(spline_pid REQUIRED)
 find_package(injection_param_calculator REQUIRED)
 find_package(injection_interface REQUIRED)
+find_package(RANSAC_localization REQUIRED)
 
 add_executable(main_exec
         src/main.cpp
@@ -24,6 +25,7 @@ ament_target_dependencies(main_exec
         spline_pid
         injection_param_calculator
         injection_interface
+        RANSAC_localization
         )
 
 target_include_directories(main_exec

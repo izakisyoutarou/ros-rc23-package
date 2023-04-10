@@ -8,7 +8,7 @@ launch: #起動パラメータ
 /**:  #ワイルドカード(ここのパラメータは全ノードから読める: <名前に注意>)
   ros__parameters:
     initial_pose: [-5.45, 0.0, 0.0]  #初期位置[x,y,yaw]
-    
+
     # 自動の並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
     linear_max_vel: 6.0
     linear_max_acc: 9.0
@@ -36,7 +36,7 @@ controller_interface_node:
     injection_max_dec: 40.0
 
     heartbeat_ms: 100 #ハートビート周期[ms]
-    
+
     #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角、udp_portのデフォルト値
     defalt_restart_flag: false
     defalt_emergency_flag: true
@@ -107,3 +107,15 @@ injection_interface_node:
   ros__parameters:
     tf_injection2robot_m0: [0.0, 0.0] #ロボット->射出機構0のTF[x,y]
     tf_injection2robot_m1: [0.0, 0.0] #ロボット->射出機構1のTF[x,y]
+
+RANSAC_localization:
+  ros__parameters:
+    plot_mode: true
+    laser_weight: 1.0 #lidarの重み
+    odom_weight_liner: 1.0e-2
+    odom_weight_angler: 1.0e-2
+    voxel_size: 0.05
+    trial_num: 40
+    inlier_dist_threshold: 0.01
+    inlier_length_threshold: 1.3
+    tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]

@@ -1,24 +1,18 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>main_executor</name>
+  <name>injection_param_calculator</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
-  <maintainer email="c1000702@planet.kanazawa-it.ac.jp">KazumaFujino</maintainer>
+  <maintainer email="c1112993@planet.kanazawa-it.ac.jp">fuchigami</maintainer>
   <license>TODO: License declaration</license>
 
-  <build_depend>rclcpp</build_depend>
-  <exec_depend>rclcpp</exec_depend>
-  <test_depend>rclcpp</test_depend>
-
-  <depend>socketcan_interface</depend>
-  <depend>mcl_2d</depend>
-  <depend>spline_pid</depend>
-  <depend>controller_interface</depend>
-  <depend>injection_interface</depend>
-  <depend>injection_param_calculator</depend>
-
   <buildtool_depend>ament_cmake</buildtool_depend>
+  <depend>rclcpp</depend>
+  <depend>std_msgs</depend>
+  <depend>injection_interface_msg</depend>
+  <depend>socketcan_interface_msg</depend>
+  <depend>utilities</depend>
 
   <test_depend>ament_lint_auto</test_depend>
   <test_depend>ament_lint_common</test_depend>

@@ -10,6 +10,14 @@ def generate_launch_description():
                 executable="default_server_endpoint",
                 emulate_tty=True,
                 parameters=[{"ROS_IP": "0.0.0.0"}, {"ROS_TCP_PORT": 10000}],
+                #parameters=[{"ROS_IP": "0.0.0.0"}, {"ROS_TCP_PORT": 11000}],
+            ),
+            Node(
+                package="ros_tcp_endpoint",
+                executable="default_server_endpoint",
+                emulate_tty=True,
+                #parameters=[{"ROS_IP": "0.0.0.0"}, {"ROS_TCP_PORT": 10000}],
+                parameters=[{"ROS_IP": "0.0.0.0"}, {"ROS_TCP_PORT": 11000}],
             )
         ]
     )

@@ -2,13 +2,14 @@ launch: #起動パラメータ
   ros__parameters:
     slcan: false
     scan: false
-    tcp_endpoint: false
+    tcp_endpoint: true
     trajectory_planner: true
 
 /**:  #ワイルドカード(ここのパラメータは全ノードから読める: <名前に注意>)
   ros__parameters:
     initial_pose: [-5.45, 0.0, 0.0]  #初期位置[x,y,yaw]
-    # 並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
+    
+    # 自動の並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
     linear_max_vel: 6.0
     linear_max_acc: 9.0
     linear_max_dec: 9.0
@@ -18,6 +19,38 @@ launch: #起動パラメータ
     angular_max_acc: 180.0
     angular_max_dec: 180.0
     angular_max_jer: 0.0
+
+controller_interface_node:
+  ros__parameters:
+    # 手動の並進　速度[m/s],加速度[m/s^2],加減速度[-m/s^2]
+    linear_max_vel: 3.0
+    linear_max_acc: 6.0
+    linear_max_dec: 6.0
+    # 手動の回転  速度[deg/s],加速度[deg/s^2],加減速度[-deg/s^2]
+    angular_max_vel: 90.0
+    angular_max_acc: 180.0
+    angular_max_dec: 180.0
+    #手動の上物　速度[deg/s],加速度[deg/s^2],加減速度[-deg/s^2] RC23−ERのdevelopブランチの348行目を参考
+    injection_max_vel: 72.0
+    injection_max_acc: 40.0
+    injection_max_dec: 40.0
+
+    heartbeat_ms: 100 #ハートビート周期[ms]
+    
+    #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角、udp_portのデフォルト値
+    defalt_restart_flag: false
+    defalt_emergency_flag: true
+    defalt_move_autonomous_flag: true
+    defalt_injection_autonomous_flag: true
+    defalt_injection_m0_flag: true
+    defalt_pitch: 45.0
+    udp_port_ER_main: 50000
+    udp_port_ER_sub: 51000
+    udp_port_RR: 52000
+
+# controller_common_proces_node:
+#   ros__parameters:
+#     pole_btn_ms: 100
 
 spline_pid_node:
   ros__parameters:
@@ -52,6 +85,23 @@ mcl_2d_node:
       param5: 0.01   #Xのズレ
       param6: 0.01   #Yのズレ
     tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]
+
+
+injection_param_calculator_node:
+  ros__parameters:
+    ring_weight: 0.10  #リングの質量
+    gravitational_accelerastion: 9.80665  #重力加速度
+    air_resistance_coefficient: 0.005321687  #空気抵抗係数
+    injection_length: 0.41  #射出機構の長さ
+    foundation_hight: 0.2636  #射出機構の地面からの高さ
+    calculat_first_velocity: 10.0  #初速度の初期値
+    velocity_lim_max: 15.0 #最大初速度
+    angle_choice: 45.0  #リングが入りやすい角度
+    angle_bounds: 40.0  #射角の境界
+    max_loop: 100  #ニュートン法の最大繰り返し数
+    pitch_limit: [15.0,45.0]  #射角の最小最大
+    yow_limit_m1: [-90.0,0.0] #左の射出機構の方向角の最小最大
+    yow_limit_m0: [0.0,90.0] #右の射出機構の方向角の最小最大
 
 injection_interface_node:
   ros__parameters:

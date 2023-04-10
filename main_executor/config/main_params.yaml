@@ -86,7 +86,6 @@ mcl_2d_node:
       param6: 0.01   #Yのズレ
     tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]
 
-<<<<<<< HEAD
 
 injection_param_calculator_node:
   ros__parameters:
@@ -109,8 +108,7 @@ injection_interface_node:
     tf_injection2robot_m0: [0.0, 0.0] #ロボット->射出機構0のTF[x,y]
     tf_injection2robot_m1: [0.0, 0.0] #ロボット->射出機構1のTF[x,y]
 
-=======
->>>>>>> 35682a268455d0dc5246ee988f5b80c7a124baee
+
 RANSAC_localization:
   ros__parameters:
     plot_mode: true

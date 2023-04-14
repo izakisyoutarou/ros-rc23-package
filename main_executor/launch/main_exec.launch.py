@@ -73,7 +73,6 @@ def generate_launch_description():
     if(launch_params['trajectory_planner'] is True):
         launch_discription.add_entity(trajectory_planner_node)
 
-
     launch_discription.add_entity(main_exec_node)
 
     return launch_discription

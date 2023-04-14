@@ -415,10 +415,8 @@ namespace controller_interface
             if(msg->data == "NotI") msg_scrn_pole->data = "NotI";
             if(msg->data == "NotJ") msg_scrn_pole->data = "NotJ";
             if(msg->data == "NotK") msg_scrn_pole->data = "NotK";
-            RCLCPP_INFO(this->get_logger(), "a:%s", msg_scrn_pole->data);
             _pub_scrn_string->publish(*msg_scrn_pole);
         }
-
 
         void SmartphoneGamepad::callback_udp_main(int sockfd)
         {
@@ -601,26 +599,27 @@ namespace controller_interface
             }
             if(is_move_autonomous == true || is_injection_autonomous == true) 
             {
-                //手動から自動になったときに、一回だけ速度指令値に0を代入してpubする。
-                if(flag_move_autonomous == true || flag_injection_autonomous == true)
+                if(flag_move_autonomous == true)
                 {
                     float_to_bytes(_candata_joy, 0);
                     for(int i=0; i<msg_linear->candlc; i++) msg_linear->candata[i] = _candata_joy[i];
                     for(int i=0; i<msg_angular->candlc; i++) msg_angular->candata[i] = _candata_joy[i];
+
+                    _pub_canusb->publish(*msg_linear);
+                    _pub_canusb->publish(*msg_angular);
+                }
+                if(flag_injection_autonomous == true)
+                {
+                    float_to_bytes(_candata_joy, 0);
                     for(int i=0; i<msg_l_elevation_velocity->candlc; i++) msg_l_elevation_velocity->candata[i] = _candata_joy[i];
                     for(int i=0; i<msg_l_yaw->candlc; i++) msg_l_yaw->candata[i] = _candata_joy[i];
                     for(int i=0; i<msg_r_elevation_velocity->candlc; i++) msg_r_elevation_velocity->candata[i] = _candata_joy[i];
                     for(int i=0; i<msg_r_yaw->candlc; i++) msg_r_yaw->candata[i] = _candata_joy[i];
 
-                    _pub_canusb->publish(*msg_linear);
-                    _pub_canusb->publish(*msg_angular);
                     _pub_canusb->publish(*msg_l_elevation_velocity);
                     _pub_canusb->publish(*msg_l_yaw);
                     _pub_canusb->publish(*msg_r_elevation_velocity);
                     _pub_canusb->publish(*msg_r_yaw);
-
-                    flag_move_autonomous = false;
-                    flag_injection_autonomous = false;
                 }
             }
         }

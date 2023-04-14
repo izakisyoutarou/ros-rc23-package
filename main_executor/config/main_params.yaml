@@ -37,22 +37,21 @@ controller_interface_node:
 
     heartbeat_ms: 100 #ハートビート周期[ms]
 
-    udp_timeout: 18 #UDPのタイムアウト値[ms]
+    move_injection_heteronomy_ms: 17 #上物と足回り手動の周期[ms]
+
+    udp_timeout_ms: 20 #UDPのタイムアウト値[ms]
+
+    udp_port_main: 50000 #mainのUDPのポート番号
+    udp_port_sub: 51000 #subのUDPのポート番号
     
-    #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角、udp_portのデフォルト値、
+    #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角
     defalt_restart_flag: false
     defalt_emergency_flag: true
     defalt_move_autonomous_flag: true
     defalt_injection_autonomous_flag: true
-    defalt_injection_m0_flag: true
+    defalt_injection_mec: 1
     defalt_pitch: 45.0
-    udp_port_ER_main: 50000
-    udp_port_ER_sub: 51000
-    udp_port_RR: 52000
-
-# controller_common_proces_node:
-#   ros__parameters:
-#     pole_btn_ms: 100
+    
 
 spline_pid_node:
   ros__parameters:

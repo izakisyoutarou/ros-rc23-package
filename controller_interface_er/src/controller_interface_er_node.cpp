@@ -546,8 +546,8 @@ namespace controller_interface
             if(is_move_autonomous == false)
             {
                 velPlanner_linear_x.vel(static_cast<double>(analog_l_y_main));//unityとロボットにおける。xとyが違うので逆にしている。
-                velPlanner_linear_y.vel(static_cast<double>(analog_l_x_main));
-                velPlanner_angular_z.vel(static_cast<double>(analog_r_x_main));
+                velPlanner_linear_y.vel(static_cast<double>(-analog_l_x_main));
+                velPlanner_angular_z.vel(static_cast<double>(-analog_r_x_main));
 
                 velPlanner_linear_x.cycle();
                 velPlanner_linear_y.cycle();

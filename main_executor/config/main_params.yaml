@@ -1,7 +1,7 @@
 launch: #起動パラメータ
   ros__parameters:
-    slcan: false
-    scan: false
+    slcan: true
+    scan: true
     tcp_endpoint: true
     trajectory_planner: true
 
@@ -10,12 +10,12 @@ launch: #起動パラメータ
     initial_pose: [-5.45, 0.0, 0.0]  #初期位置[x,y,yaw]
 
     # 自動の並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
-    linear_max_vel: 6.0
-    linear_max_acc: 9.0
-    linear_max_dec: 9.0
+    linear_max_vel: 4.0
+    linear_max_acc: 6.0
+    linear_max_dec: 6.0
     linear_max_jer: 0.0
     # 回転  速度[deg/s],加速度[deg/s^2],加減速度[-deg/s^2],躍度[deg/s^3]
-    angular_max_vel: 90.0
+    angular_max_vel: 45.0
     angular_max_acc: 180.0
     angular_max_dec: 180.0
     angular_max_jer: 0.0
@@ -39,11 +39,11 @@ controller_interface_node:
 
     move_injection_heteronomy_ms: 17 #上物と足回り手動の周期[ms]
 
-    udp_timeout_ms: 20 #UDPのタイムアウト値[ms]
+    udp_timeout_ms: 10 #UDPのタイムアウト値[ms]
 
     udp_port_main: 50000 #mainのUDPのポート番号
     udp_port_sub: 51000 #subのUDPのポート番号
-    
+
     #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角
     defalt_restart_flag: false
     defalt_emergency_flag: true
@@ -51,16 +51,16 @@ controller_interface_node:
     defalt_injection_autonomous_flag: true
     defalt_injection_mec: 1
     defalt_pitch: 45.0
-    
+
 
 spline_pid_node:
   ros__parameters:
-    interval_ms: 5     #サイクル周期[ms]
+    interval_ms: 20     #サイクル周期[ms]
     curvature_attenuation_rate: 0.0 #曲率の速度の減衰>=0 (0だと減衰なし)
     linear_planner_vel_limit_gain: 0.6  #速度計画機の速度上限値にかけるゲイン
 
-    linear_planner_gain: 1.3 #並進速度計画機ゲイン
-    linear_pos_gain: 3.5  #並進位置ズレのゲイン
+    linear_planner_gain: 0.1 #並進速度計画機ゲイン  1.3
+    linear_pos_gain: 2.5  #並進位置ズレのゲイン 3.5
     linear_pos_integral_gain: 0.01  #並進位置ズレの積分ゲイン
 
     angular_planner_gain: 1.7 #回転速度計画機ゲイン
@@ -122,4 +122,4 @@ RANSAC_localization:
     inlier_dist_threshold: 0.01
     inlier_length_threshold: 1.3
     initial_pose: [-5.45, 0.0, 0.0]  #初期位置[x,y,yaw]
-    tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]
+    tf_laser2robot: [0.4435,0.12,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]

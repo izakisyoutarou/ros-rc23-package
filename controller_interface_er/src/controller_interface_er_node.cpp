@@ -143,7 +143,7 @@ namespace controller_interface
             //上物と足回り手動周期(60hz)
             _move_injection_heteronomy = this->create_wall_timer(
                 std::chrono::milliseconds(move_injection_heteronomy_ms),
-                std::bind(&SmartphoneGamepad::callback_move_injection_heteronomy, this) 
+                std::bind(&SmartphoneGamepad::callback_move_injection_heteronomy, this)
             );
 
             //計画機
@@ -279,7 +279,7 @@ namespace controller_interface
             msg_btn->canid = 0x300;
             msg_btn->candlc = 8;
 
-            auto msg_scrn_pole_restart = std::make_shared<std_msgs::msg::String>(); 
+            auto msg_scrn_pole_restart = std::make_shared<std_msgs::msg::String>();
 
             uint8_t _candata_btn[8];
 
@@ -294,7 +294,7 @@ namespace controller_interface
             if(msg->r3)
             {
                 robotcontrol_flag = true;
-                if(injection_mec == 0) 
+                if(injection_mec == 0)
                 {
                     injection_mec = 1;
                 }
@@ -392,7 +392,7 @@ namespace controller_interface
 
         void SmartphoneGamepad::callback_scrn_pole(const std_msgs::msg::String::SharedPtr msg)
         {
-            auto msg_scrn_pole = std::make_shared<std_msgs::msg::String>(); 
+            auto msg_scrn_pole = std::make_shared<std_msgs::msg::String>();
             if(msg->data == "A") msg_scrn_pole->data = "A";
             if(msg->data == "B") msg_scrn_pole->data = "B";
             if(msg->data == "C") msg_scrn_pole->data = "C";
@@ -452,7 +452,7 @@ namespace controller_interface
                     continue;
                 }
 
-                if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv)) < 0) 
+                if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv)) < 0)
                 {
                     perror("setsockopt");
                     continue;
@@ -499,16 +499,16 @@ namespace controller_interface
                     continue;
                 }
 
-                if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv)) < 0) 
+                if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv)) < 0)
                 {
                     perror("setsockopt");
                     continue;
-                }               
+                }
 
                 std::memcpy(&analog_l_x_sub, &buffer[0], sizeof(analog_l_x_sub));
                 std::memcpy(&analog_l_y_sub, &buffer[4], sizeof(analog_l_y_sub));
                 std::memcpy(&analog_r_x_sub, &buffer[8], sizeof(analog_r_x_sub));
-                std::memcpy(&analog_r_y_sub, &buffer[12], sizeof(analog_r_y_sub));   
+                std::memcpy(&analog_r_y_sub, &buffer[12], sizeof(analog_r_y_sub));
             }
         }
 
@@ -597,7 +597,7 @@ namespace controller_interface
                 }
                 flag_injection_autonomous = true;
             }
-            if(is_move_autonomous == true || is_injection_autonomous == true) 
+            else if(is_move_autonomous == true )
             {
                 if(flag_move_autonomous == true)
                 {
@@ -608,6 +608,9 @@ namespace controller_interface
                     _pub_canusb->publish(*msg_linear);
                     _pub_canusb->publish(*msg_angular);
                 }
+            }
+            else if(is_injection_autonomous == true)
+            {
                 if(flag_injection_autonomous == true)
                 {
                     float_to_bytes(_candata_joy, 0);

@@ -59,7 +59,7 @@ namespace injection_param_calculator{
         RCLCPP_INFO(this->get_logger(),"mech_num: %d velocity: %lf[m/s] elevation: %lf[rad]",mech_num,velocity, elevation);
         RCLCPP_INFO(this->get_logger(),"mech_num: %d direction: %lf[rad]",mech_num,injection_comand.direction);
 
-        msg_injection->canid = 0x130 + mech_num;
+        msg_injection->canid = 0x210 + 2*mech_num;
         msg_injection->candlc = 8;
 
          //送信
@@ -69,7 +69,7 @@ namespace injection_param_calculator{
         for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
         // std::copy(std::begin(_candata), std::end(_candata), msg_injection->candata.begin());
 
-        msg_yaw->canid = 0x130 + mech_num + 1;
+        msg_yaw->canid = 0x210 + 2*mech_num + 1;
         msg_yaw->candlc = 4;
         float_to_bytes(_candata, static_cast<float>(direction));
         for(int i=0; i<msg_yaw->candlc; i++) msg_yaw->candata[i] = _candata[i];

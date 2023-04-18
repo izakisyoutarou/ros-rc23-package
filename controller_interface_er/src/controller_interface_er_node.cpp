@@ -110,6 +110,9 @@ namespace controller_interface
             //各nodeへリスタートと手自動の切り替えをpub。
             _pub_base_control = this->create_publisher<controller_interface_msg::msg::BaseControl>("base_control",_qos);
 
+            //gazebo用のpub
+            _pub_gazebo = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", _qos);
+
             //デフォルト値をpub.。各種、boolに初期値を代入。
             auto msg_base_control = std::make_shared<controller_interface_msg::msg::BaseControl>();
             msg_base_control->is_restart = defalt_restart_flag;
@@ -420,6 +423,8 @@ namespace controller_interface
 
         void SmartphoneGamepad::callback_udp_main(int sockfd)
         {
+            char buffers[BUFFER_NUM][13];
+            int cur_buf = 0;
             struct timeval tv;
             tv.tv_usec = udp_timeout_ms;
 
@@ -444,7 +449,7 @@ namespace controller_interface
                 }
 
                 // bufferに受信したデータが格納されている
-                n = recvfrom(sockfd, buffer, BUFSIZE, 0, (struct sockaddr *) &cliaddr, &clilen);
+                n = recvfrom(sockfd, buffers[cur_buf], BUFSIZE, 0, (struct sockaddr *) &cliaddr, &clilen);
 
                 if (n < 0)
                 {
@@ -458,15 +463,18 @@ namespace controller_interface
                     continue;
                 }
 
-                std::memcpy(&analog_l_x_main, &buffer[0], sizeof(analog_l_x_main));
-                std::memcpy(&analog_l_y_main, &buffer[4], sizeof(analog_l_y_main));
-                std::memcpy(&analog_r_x_main, &buffer[8], sizeof(analog_r_x_main));
-                std::memcpy(&analog_r_y_main, &buffer[12], sizeof(analog_r_y_main));
+                std::memcpy(&analog_l_x_main, &buffers[cur_buf][0], sizeof(analog_l_x_main));
+                std::memcpy(&analog_l_y_main, &buffers[cur_buf][4], sizeof(analog_l_y_main));
+                std::memcpy(&analog_r_x_main, &buffers[cur_buf][8], sizeof(analog_r_x_main));
+                std::memcpy(&analog_r_y_main, &buffers[cur_buf][12], sizeof(analog_r_y_main));
+                cur_buf = (cur_buf + 1) % BUFFER_NUM;
             }
         }
 
         void SmartphoneGamepad::callback_udp_sub(int sockfd)
         {
+            char buffers[BUFFER_NUM][13];
+            int cur_buf = 0;
             struct timeval tv;
             tv.tv_usec = udp_timeout_ms;
 
@@ -491,7 +499,7 @@ namespace controller_interface
                 }
 
                 // bufferに受信したデータが格納されている
-                n = recvfrom(sockfd, buffer, BUFSIZE, 0, (struct sockaddr *) &cliaddr, &clilen);
+                n = recvfrom(sockfd, buffers[cur_buf], BUFSIZE, 0, (struct sockaddr *) &cliaddr, &clilen);
 
                 if (n < 0)
                 {
@@ -505,10 +513,11 @@ namespace controller_interface
                     continue;
                 }               
 
-                std::memcpy(&analog_l_x_sub, &buffer[0], sizeof(analog_l_x_sub));
-                std::memcpy(&analog_l_y_sub, &buffer[4], sizeof(analog_l_y_sub));
-                std::memcpy(&analog_r_x_sub, &buffer[8], sizeof(analog_r_x_sub));
-                std::memcpy(&analog_r_y_sub, &buffer[12], sizeof(analog_r_y_sub));   
+                std::memcpy(&analog_l_x_sub, &buffers[cur_buf][0], sizeof(analog_l_x_sub));
+                std::memcpy(&analog_l_y_sub, &buffers[cur_buf][4], sizeof(analog_l_y_sub));
+                std::memcpy(&analog_r_x_sub, &buffers[cur_buf][8], sizeof(analog_r_x_sub));
+                std::memcpy(&analog_r_y_sub, &buffers[cur_buf][12], sizeof(analog_r_y_sub));   
+                cur_buf = (cur_buf + 1) % BUFFER_NUM;
             }
         }
 
@@ -538,6 +547,8 @@ namespace controller_interface
             msg_r_yaw->canid = 0x213;
             msg_r_yaw->candlc = 4;
 
+            auto msg_gazebo = std::make_shared<geometry_msgs::msg::Twist>();
+
             uint8_t _candata_joy[8];
 
             bool flag_move_autonomous = false;
@@ -562,6 +573,11 @@ namespace controller_interface
 
                 _pub_canusb->publish(*msg_linear);
                 _pub_canusb->publish(*msg_angular);
+
+                msg_gazebo->linear.x = velPlanner_linear_x.vel();
+                msg_gazebo->linear.y = velPlanner_linear_y.vel();
+                msg_gazebo->angular.z = velPlanner_angular_z.vel();
+                _pub_gazebo->publish(*msg_gazebo);
 
                 flag_move_autonomous = true;
             }

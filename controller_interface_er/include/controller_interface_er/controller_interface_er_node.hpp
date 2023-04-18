@@ -69,8 +69,8 @@ namespace controller_interface
             //各nodeへリスタートと手自動の切り替えをpub
             rclcpp::Publisher<controller_interface_msg::msg::BaseControl>::SharedPtr _pub_base_control;
 
-            //test用のpub
-            rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr _pub_test;
+            //gazebo_simulator用のpub
+            rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr _pub_gazebo;
 
             //timer
             rclcpp::TimerBase::SharedPtr _pub_heartbeat;

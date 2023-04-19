@@ -79,12 +79,13 @@ injection_param_calculator_node:
     ring_weight: 0.10  #リングの質量[kg]
     gravitational_accelerastion: 9.80665  #重力加速度[m/s^2]
     air_resistance_coefficient: 0.104109  #空気抵抗係数[kg/s]
-    injection_length: 0.30  #射出機構の長さ[m]
-    foundation_hight: 0.2609  #射出機構の地面からの高さ[m]
+    injection_length: 0.39  #射出機構の長さ[m]
+    foundation_hight: 0.2785  #射出機構の地面からの高さ[m]
     calculat_first_velocity: 10.0  #初速度の初期値[m/s]
+    calculate_first_velocity_low: 4.0 #初速度の初期値(近いポール)
     velocity_lim_max: 15.0 #最大初速度[m/s]
     angle_choice: 45.0  #リングが入りやすい角度[deg]
-    angle_bounds: 40.0  #射角の境界[deg]
+    angle_bounds: 24.26  #射角の境界[deg]
     max_loop: 100  #ニュートン法の最大繰り返し数
     pitch_limit: [15.0,53.0]  #射角の最小最大[deg]
     yow_limit_m0: [-70.0,0.0] #左の射出機構の方向角の最小最大[deg]

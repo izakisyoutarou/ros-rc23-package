@@ -15,6 +15,7 @@ namespace injection_param_calculator{
         injection_length(get_parameter("injection_length").as_double()),
         foundation_hight(get_parameter("foundation_hight").as_double()),
         calculat_first_velocity(get_parameter("calculat_first_velocity").as_double()),
+        calculate_first_velocity_low(get_parameter("calculate_first_velocity_low").as_double()),
         velocity_lim_max(get_parameter("velocity_lim_max").as_double()),
         angle_choice(get_parameter("angle_choice").as_double()),
         angle_bounds(get_parameter("angle_bounds").as_double()),
@@ -62,7 +63,7 @@ namespace injection_param_calculator{
         msg_injection->canid = 0x210 + 2*mech_num;
         msg_injection->candlc = 8;
 
-         //送信
+        //送信
         uint8_t _candata[8];
         float_to_bytes(_candata, static_cast<float>(elevation));
         float_to_bytes(_candata+4, static_cast<float>(velocity));
@@ -104,6 +105,12 @@ namespace injection_param_calculator{
     bool InjectionParamCalculator::calculateVelocity(){
         int num_loop = 0;
         double old_velocity = calculat_first_velocity;
+        if(elevation == dtor(pitch_limit[1])){
+            old_velocity = calculate_first_velocity_low;
+        }
+        else{
+            old_velocity = calculat_first_velocity;
+        }
         bool isConvergenced = false;
         //auto isConvergenced = std::make_shared<std_msgs::msg::Bool>();
         bool isAiming = false;

@@ -35,7 +35,6 @@ int main(int argc, char * argv[]){
     exec.add_node(injection_interface_node1);
     exec.add_node(injection_param_calclator_node0);
     exec.add_node(injection_param_calclator_node1);
-    exec.add_node(spline_pid_node);
 
 
     exec.spin();

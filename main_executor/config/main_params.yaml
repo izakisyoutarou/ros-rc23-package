@@ -60,6 +60,7 @@ spline_pid_node:
 
     linear_planner_gain: 0.1 #並進速度計画機ゲイン  1.3
     linear_pos_gain: 3.5  #並進位置ズレのゲイン 3.5
+    linear_pos_diff_gain: 0.1
     linear_pos_integral_gain: 0.01  #並進位置ズレの積分ゲイン
 
     angular_planner_gain: 1.7 #回転速度計画機ゲイン

@@ -39,7 +39,7 @@ namespace injection_param_calculator{
         auto msg_isConvergenced = std::make_shared<std_msgs::msg::Bool>();
         bool isConvergenced = false;
         injection_comand.distance = msg->distance;
-        injection_comand.direction = -msg->direction;
+        injection_comand.direction = msg->direction;
         injection_comand.height = msg->height;
         RCLCPP_INFO(this->get_logger(),"elavation: %lf",injection_comand.direction);
 

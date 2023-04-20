@@ -127,6 +127,8 @@ namespace controller_interface
             const bool defalt_injection_mec;
             const int udp_port_main;
             const int udp_port_sub;
+            const int udp_port_pole_er;
+            const int udp_port_pole_rr;
             const int udp_timeout_ms;
 
             //Joyの値を格納(main)
@@ -142,17 +144,27 @@ namespace controller_interface
             float analog_r_y_sub = 0.0f;
 
             //UDP用
-            int sockfd, n;
-            socklen_t clilen;
-            char* buffer = new char[16];
-            struct sockaddr_in servaddr, cliaddr;
-            std::thread udp_thread_;
+            int sockfd_main, main;
+            socklen_t clilen_main;
+            char* buffer_main = new char[16];
+            struct sockaddr_in servaddr_main, cliaddr_main;
+            std::thread udp_thread_main;
 
-            int sockfd2, n2;
-            socklen_t clilen2;
-            char* buffer2 = new char[16];
-            struct sockaddr_in servaddr2, cliaddr2;
-            std::thread udp_thread_2;
+            int sockfd_sub, sub;
+            socklen_t clilen_sub;
+            char* buffer_sub = new char[16];
+            struct sockaddr_in servaddr_sub, cliaddr_sub;
+            std::thread udp_thread_sub;
+
+            int sockfd_er, er;
+            socklen_t clilen_er;
+            char* buffer_er = new char[16];
+            struct sockaddr_in servaddr_er, cliaddr_er;
+
+            int sockfd_rr, rr;
+            socklen_t clilen_rr;
+            char* buffer_rr = new char[16];
+            struct sockaddr_in servaddr_rr, cliaddr_rr;
 
             //計画機
             VelPlanner velPlanner_linear_x;

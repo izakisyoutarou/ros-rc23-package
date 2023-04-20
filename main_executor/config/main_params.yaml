@@ -43,6 +43,8 @@ controller_interface_node:
 
     udp_port_main: 50000 #mainのUDPのポート番号
     udp_port_sub: 51000 #subのUDPのポート番号
+    udp_port_pole_er: 53000 #er実行機からpole情報を送るUDPのポート番号
+    udp_port_pole_rr: 54000 #rr実行機からpole情報を受け取るUDPのポート番号
     
     #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角
     defalt_restart_flag: false

@@ -8,6 +8,7 @@ namespace controller_interface
 {
     #define BUFFER_NUM 3
     #define BUFSIZE 1024
+    #define ER_IP "192.168.1.4"
     using std::string;
 
     SmartphoneGamepad::SmartphoneGamepad(const rclcpp::NodeOptions &options) : SmartphoneGamepad("", options) {}
@@ -37,6 +38,8 @@ namespace controller_interface
         defalt_injection_mec(get_parameter("defalt_injection_mec").as_int()),
         udp_port_main(get_parameter("udp_port_main").as_int()),
         udp_port_sub(get_parameter("udp_port_sub").as_int()),
+        udp_port_pole_er(get_parameter("udp_port_pole_er").as_int()),
+        udp_port_pole_rr(get_parameter("udp_port_pole_rr").as_int()),
         udp_timeout_ms(get_parameter("udp_timeout_ms").as_int())
         {
             const auto heartbeat_ms = this->get_parameter("heartbeat_ms").as_int();
@@ -130,6 +133,7 @@ namespace controller_interface
             auto msg_emergency = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
             msg_emergency->canid = 0x000;
             msg_emergency->candlc = 1;
+            msg_emergency->candata[0] = defalt_emergency_flag;
             _pub_canusb->publish(*msg_emergency);
 
             //ハートビート
@@ -156,21 +160,27 @@ namespace controller_interface
             velPlanner_injection_v.limit(limit_injection);
 
             //UDP
-            sockfd = socket(AF_INET, SOCK_DGRAM, 0);
-            memset(&servaddr, 0, sizeof(servaddr));
-            servaddr.sin_family = AF_INET;
-            servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-            servaddr.sin_port = htons(udp_port_main);
-            bind(sockfd, (struct sockaddr *) &servaddr, sizeof(servaddr));
-            udp_thread_ = std::thread(&SmartphoneGamepad::callback_udp_main, this, sockfd);
+            sockfd_main = socket(AF_INET, SOCK_DGRAM, 0);
+            memset(&servaddr_main, 0, sizeof(servaddr_main));
+            servaddr_main.sin_family = AF_INET;
+            servaddr_main.sin_addr.s_addr = htonl(INADDR_ANY);
+            servaddr_main.sin_port = htons(udp_port_main);
+            bind(sockfd_main, (struct sockaddr *) &servaddr_main, sizeof(servaddr_main));
+            udp_thread_main = std::thread(&SmartphoneGamepad::callback_udp_main, this, sockfd_main);
 
-            sockfd2 = socket(AF_INET, SOCK_DGRAM, 0);
-            memset(&servaddr2, 0, sizeof(servaddr2));
-            servaddr2.sin_family = AF_INET;
-            servaddr2.sin_addr.s_addr = htonl(INADDR_ANY);
-            servaddr2.sin_port = htons(udp_port_sub);
-            bind(sockfd2, (struct sockaddr *) &servaddr2, sizeof(servaddr2));
-            udp_thread_2 = std::thread(&SmartphoneGamepad::callback_udp_sub, this, sockfd2);
+            sockfd_sub = socket(AF_INET, SOCK_DGRAM, 0);
+            memset(&servaddr_sub, 0, sizeof(servaddr_sub));
+            servaddr_sub.sin_family = AF_INET;
+            servaddr_sub.sin_addr.s_addr = htonl(INADDR_ANY);
+            servaddr_sub.sin_port = htons(udp_port_sub);
+            bind(sockfd_sub, (struct sockaddr *) &servaddr_sub, sizeof(servaddr_sub));
+            udp_thread_sub = std::thread(&SmartphoneGamepad::callback_udp_sub, this, sockfd_sub);
+
+            sockfd_er = socket(AF_INET, SOCK_DGRAM, 0);
+            memset(&servaddr_er, 0, sizeof(servaddr_er));
+            servaddr_er.sin_family = AF_INET;
+            servaddr_er.sin_addr.s_addr = inet_addr(ER_IP);
+            servaddr_er.sin_port = htons(udp_port_pole_er);
         }
 
         void SmartphoneGamepad::callback_pad_main(const controller_interface_msg::msg::SubPad::SharedPtr msg)
@@ -430,7 +440,7 @@ namespace controller_interface
 
             while(rclcpp::ok())
             {
-                clilen = sizeof(cliaddr);
+                clilen_main = sizeof(cliaddr_main);
 
                 // ノンブロッキングモードでrecvfromを呼び出す
                 fd_set read_fds;
@@ -449,9 +459,9 @@ namespace controller_interface
                 }
 
                 // bufferに受信したデータが格納されている
-                n = recvfrom(sockfd, buffers[cur_buf], BUFSIZE, 0, (struct sockaddr *) &cliaddr, &clilen);
+                main = recvfrom(sockfd, buffers[cur_buf], BUFSIZE, 0, (struct sockaddr *) &cliaddr_main, &clilen_main);
 
-                if (n < 0)
+                if (main < 0)
                 {
                     perror("recvfrom");
                     continue;
@@ -480,7 +490,7 @@ namespace controller_interface
 
             while(rclcpp::ok())
             {
-                clilen = sizeof(cliaddr);
+                clilen_sub = sizeof(cliaddr_sub);
 
                 // ノンブロッキングモードでrecvfromを呼び出す
                 fd_set read_fds;
@@ -499,9 +509,9 @@ namespace controller_interface
                 }
 
                 // bufferに受信したデータが格納されている
-                n = recvfrom(sockfd, buffers[cur_buf], BUFSIZE, 0, (struct sockaddr *) &cliaddr, &clilen);
+                sub = recvfrom(sockfd, buffers[cur_buf], BUFSIZE, 0, (struct sockaddr *) &cliaddr_sub, &clilen_sub);
 
-                if (n < 0)
+                if (sub < 0)
                 {
                     perror("recvfrom");
                     continue;
@@ -642,39 +652,26 @@ namespace controller_interface
 
         void SmartphoneGamepad::callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg)
         {
-            //mainから射出可能司令のsub。それぞれをconvergenceの適当なところに入れてpub。上物の収束状況。
-            auto msg_injectioncommnd = std::make_shared<controller_interface_msg::msg::Convergence>();
-            uint8_t _candata[2];
-            for(int i=0; i<msg->candlc; i++) _candata[i] = msg->candata[i];
-            msg_injectioncommnd->injection0 = static_cast<bool>(_candata[0]);
-            msg_injectioncommnd->injection1 = static_cast<bool>(_candata[1]);
-            _pub_convergence->publish(*msg_injectioncommnd);
+            ///mainから射出可能司令のsub。上物の収束状況。
+            is_injection0_convergence = static_cast<bool>(msg->candata[0]);
+            is_injection1_convergence = static_cast<bool>(msg->candata[1]);
         }
 
         void SmartphoneGamepad::callback_spline(const std_msgs::msg::Bool::SharedPtr msg)
         {
-            //spline_pidから足回り収束のsub。onvergenceの適当なところに入れてpub。足回りの収束状況。
-            auto msg_spline_convergence = std::make_shared<controller_interface_msg::msg::Convergence>();
+            //spline_pidから足回り収束のsub。足回りの収束状況。
             is_spline_convergence = msg->data;
-            msg_spline_convergence->spline_convergence = is_spline_convergence;
-            _pub_convergence->publish(*msg_spline_convergence);
         }
 
         void SmartphoneGamepad::callback_injection_calculator_0(const std_msgs::msg::Bool::SharedPtr msg)
         {
-            //injection_calculatorから上モノ指令値計算収束のsub。onvergenceの適当なところに入れてpub。上物の指令値の収束情報。
-            auto msg_injection_calculator0_convergence = std::make_shared<controller_interface_msg::msg::Convergence>();
+             //injection_calculatorから上モノ指令値計算収束のsub。上物の指令値の収束情報。
             is_injection_calculator0_convergence = msg->data;
-            msg_injection_calculator0_convergence->injection_calculator0 = is_injection_calculator0_convergence;
-            _pub_convergence->publish(*msg_injection_calculator0_convergence);
         }
 
         void SmartphoneGamepad::callback_injection_calculator_1(const std_msgs::msg::Bool::SharedPtr msg)
         {
-            //injection_calculatorから上モノ指令値計算収束のsub。onvergenceの適当なところに入れてpub。上物の指令値の収束情報。7
-            auto msg_injection_calculator1_convergence = std::make_shared<controller_interface_msg::msg::Convergence>();
+            //injection_calculatorから上モノ指令値計算収束のsub。上物の指令値の収束情報。
             is_injection_calculator1_convergence = msg->data;
-            msg_injection_calculator1_convergence->injection_calculator1 = is_injection_calculator1_convergence;
-            _pub_convergence->publish(*msg_injection_calculator1_convergence);
         }
 }

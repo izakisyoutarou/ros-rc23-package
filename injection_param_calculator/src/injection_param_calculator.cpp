@@ -35,7 +35,7 @@ namespace injection_param_calculator{
             //_pub_test_injection = this->create_publisher<injection_interface_msg::msg::InjectionCommand>("injcetion_command_m"+to_string(mech_num),_qos);
             RCLCPP_INFO(this->get_logger(),"create injection_"+to_string(mech_num));
             // RCLCPP_INFO(this->get_logger(),"max_loop: %d ",max_loop);
-            // RCLCPP_INFO(this->get_logger(),"yow_lim_min: %lf yow_lim_max: %lf ",yow_limit[0],yow_limit[1]);
+            // RCLCPP_INFO(this->get_logger(),"mech_num: %d yow_lim_min: %lf yow_lim_max: %lf ",mech_num,yow_limit[0],yow_limit[1]);
         }
     void InjectionParamCalculator::callback_injection(const injection_interface_msg::msg::InjectionCommand::SharedPtr msg){
         // auto msg_injection_parameter = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
@@ -51,8 +51,9 @@ namespace injection_param_calculator{
         auto msg_isConvergenced = std::make_shared<std_msgs::msg::Bool>();
         bool isConvergenced = false;
         injection_comand.distance = msg->distance;
-        injection_comand.direction = msg->direction;
+        injection_comand.direction = -msg->direction;
         injection_comand.height = msg->height;
+        RCLCPP_INFO(this->get_logger(),"elavation: %lf",injection_comand.direction);
 
         calculateElevation();
         isConvergenced = calculateVelocity();

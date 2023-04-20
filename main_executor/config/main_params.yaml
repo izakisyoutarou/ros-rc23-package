@@ -81,7 +81,7 @@ injection_param_calculator_node:
     air_resistance_coefficient: 0.104109  #空気抵抗係数[kg/s]
     injection_length: 0.39  #射出機構の長さ[m]
     foundation_hight: 0.2785  #射出機構の地面からの高さ[m]
-    calculat_first_velocity: 10.0  #初速度の初期値[m/s]
+    calculat_first_velocity: 7.5  #初速度の初期値[m/s]
     calculate_first_velocity_low: 4.0 #初速度の初期値(近いポール)
     velocity_lim_max: 15.0 #最大初速度[m/s]
     angle_choice: 45.0  #リングが入りやすい角度[deg]

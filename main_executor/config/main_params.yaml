@@ -1,6 +1,6 @@
 launch: #起動パラメータ
   ros__parameters:
-    slcan: true
+    slcan: false
     scan: false
     tcp_endpoint: true
     trajectory_planner: true

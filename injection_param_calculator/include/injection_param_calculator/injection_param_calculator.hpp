@@ -19,7 +19,6 @@ namespace injection_param_calculator{
 
             rclcpp::Publisher<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _pub_can;
             rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr _pub_isConvergenced;
-            //rclcpp::Publisher<injection_interface_msg::msg::InjectionCommand>::SharedPtr _pub_test_injection;
 
             void callback_injection(const injection_interface_msg::msg::InjectionCommand::SharedPtr msg);
 
@@ -27,7 +26,6 @@ namespace injection_param_calculator{
             double diff(double v0);
             void calculateElevation();
             bool calculateVelocity();
-            // std::string int_to_string(int mech_num);
 
             injection_interface_msg::msg::InjectionCommand injection_comand;
             double velocity;
@@ -43,6 +41,7 @@ namespace injection_param_calculator{
             const double injection_length;    //射出機構の長さ
             const double foundation_hight;    //射出機構の地面からの高さ
             const double calculat_first_velocity; //初速度の初期値
+            const double calculate_first_velocity_low;  //初速度の初期値(近くのポール)
             const double velocity_lim_max;    //最大初速度
             const double angle_choice;    //リングが入りやすい角度
             const double angle_bounds;    //角度の境界

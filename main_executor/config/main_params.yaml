@@ -89,25 +89,25 @@ mcl_2d_node:
 
 injection_param_calculator_node:
   ros__parameters:
-    ring_weight: 0.10  #リングの質量
-    gravitational_accelerastion: 9.80665  #重力加速度
-    air_resistance_coefficient: 0.005321687  #空気抵抗係数
-    injection_length: 0.41  #射出機構の長さ
-    foundation_hight: 0.2636  #射出機構の地面からの高さ
-    calculat_first_velocity: 10.0  #初速度の初期値
-    velocity_lim_max: 15.0 #最大初速度
-    angle_choice: 45.0  #リングが入りやすい角度
-    angle_bounds: 40.0  #射角の境界
+    ring_weight: 0.10  #リングの質量[kg]
+    gravitational_accelerastion: 9.80665  #重力加速度[m/s^2]
+    air_resistance_coefficient: 0.104109  #空気抵抗係数[kg/s]
+    injection_length: 0.39  #射出機構の長さ[m]
+    foundation_hight: 0.2785  #射出機構の地面からの高さ[m]
+    calculat_first_velocity: 7.5  #初速度の初期値[m/s]
+    calculate_first_velocity_low: 4.0 #初速度の初期値(近いポール)
+    velocity_lim_max: 15.0 #最大初速度[m/s]
+    angle_choice: 45.0  #リングが入りやすい角度[deg]
+    angle_bounds: 24.26  #射角の境界[deg]
     max_loop: 100  #ニュートン法の最大繰り返し数
-    pitch_limit: [15.0,45.0]  #射角の最小最大
-    yow_limit_m1: [-90.0,0.0] #左の射出機構の方向角の最小最大
-    yow_limit_m0: [0.0,90.0] #右の射出機構の方向角の最小最大
+    pitch_limit: [15.0,53.0]  #射角の最小最大[deg]
+    yow_limit_m0: [0.0,70.0] #左の射出機構の方向角の最小最大[deg]
+    yow_limit_m1: [-70.0,0.0] #右の射出機構の方向角の最小最大[deg]
 
 injection_interface_node:
   ros__parameters:
     tf_injection2robot_m0: [0.0, 0.0] #ロボット->射出機構0のTF[x,y]
     tf_injection2robot_m1: [0.0, 0.0] #ロボット->射出機構1のTF[x,y]
-
 
 RANSAC_localization:
   ros__parameters:

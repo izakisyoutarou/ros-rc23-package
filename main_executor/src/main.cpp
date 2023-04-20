@@ -27,7 +27,7 @@ int main(int argc, char * argv[]){
     auto spline_pid_node = std::make_shared<spline_pid::SplinePid>(nodes_option);
 
     //exec.add_node(socketcan_node);
-    //exec.add_node(mcl_2d_node);
+    // exec.add_node(mcl_2d_node);
     //exec.add_node(RANSAC_localization);
     exec.add_node(controller_commonproces_node);
     exec.add_node(controller_node);
@@ -36,6 +36,7 @@ int main(int argc, char * argv[]){
     exec.add_node(injection_param_calclator_node0);
     exec.add_node(injection_param_calclator_node1);
     //exec.add_node(spline_pid_node);
+
 
     exec.spin();
     rclcpp::shutdown();

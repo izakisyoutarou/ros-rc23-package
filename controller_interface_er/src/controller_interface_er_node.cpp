@@ -161,22 +161,13 @@ namespace controller_interface
             velPlanner_angular_z.limit(limit_angular);
             velPlanner_injection_v.limit(limit_injection);
 
-            //UDP
-            sockfd_main = socket(AF_INET, SOCK_DGRAM, 0);
-            memset(&servaddr_main, 0, sizeof(servaddr_main));
-            servaddr_main.sin_family = AF_INET;
-            servaddr_main.sin_addr.s_addr = htonl(INADDR_ANY);
-            servaddr_main.sin_port = htons(udp_port_main);
-            bind(sockfd_main, (struct sockaddr *) &servaddr_main, sizeof(servaddr_main));
-            //udp_thread_main = std::thread(&udp::callback_udp_main, this, sockfd_main);
-
             sockfd_sub = socket(AF_INET, SOCK_DGRAM, 0);
             memset(&servaddr_sub, 0, sizeof(servaddr_sub));
             servaddr_sub.sin_family = AF_INET;
             servaddr_sub.sin_addr.s_addr = htonl(INADDR_ANY);
             servaddr_sub.sin_port = htons(udp_port_sub);
             bind(sockfd_sub, (struct sockaddr *) &servaddr_sub, sizeof(servaddr_sub));
-            udp_thread_sub = std::thread(&SmartphoneGamepad::callback_udp_sub, this, sockfd_sub);
+            //udp_thread_sub = std::thread(&SmartphoneGamepad::callback_udp_sub, this, sockfd_sub);
 
             sockfd_er = socket(AF_INET, SOCK_DGRAM, 0);
             memset(&servaddr_er, 0, sizeof(servaddr_er));
@@ -431,56 +422,6 @@ namespace controller_interface
             if(msg->data == "NotJ") msg_scrn_pole->data = "NotJ";
             if(msg->data == "NotK") msg_scrn_pole->data = "NotK";
             _pub_scrn_string->publish(*msg_scrn_pole);
-        }
-
-        void SmartphoneGamepad::callback_udp_main(int sockfd)
-        {
-            char buffers[BUFFER_NUM][13];
-            int cur_buf = 0;
-            struct timeval tv;
-            tv.tv_usec = udp_timeout_ms;
-
-            while(rclcpp::ok())
-            {
-                clilen_main = sizeof(cliaddr_main);
-
-                // ノンブロッキングモードでrecvfromを呼び出す
-                fd_set read_fds;
-                FD_ZERO(&read_fds);
-                FD_SET(sockfd, &read_fds);
-                int sel = select(sockfd + 1, &read_fds, NULL, NULL, &tv);
-                if (sel == -1)
-                {
-                    perror("select");
-                    continue;
-                }
-                else if (sel == 0)
-                {
-                    // タイムアウトした場合、再試行
-                    continue;
-                }
-
-                // bufferに受信したデータが格納されている
-                main = recvfrom(sockfd, buffers[cur_buf], BUFSIZE, 0, (struct sockaddr *) &cliaddr_main, &clilen_main);
-
-                if (main < 0)
-                {
-                    perror("recvfrom");
-                    continue;
-                }
-
-                if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv)) < 0) 
-                {
-                    perror("setsockopt");
-                    continue;
-                }
-
-                std::memcpy(&analog_l_x_main, &buffers[cur_buf][0], sizeof(analog_l_x_main));
-                std::memcpy(&analog_l_y_main, &buffers[cur_buf][4], sizeof(analog_l_y_main));
-                std::memcpy(&analog_r_x_main, &buffers[cur_buf][8], sizeof(analog_r_x_main));
-                std::memcpy(&analog_r_y_main, &buffers[cur_buf][12], sizeof(analog_r_y_main));
-                cur_buf = (cur_buf + 1) % BUFFER_NUM;
-            }
         }
 
         void SmartphoneGamepad::callback_udp_sub(int sockfd)

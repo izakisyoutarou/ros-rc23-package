@@ -145,13 +145,6 @@ namespace controller_interface
             float analog_r_x_sub = 0.0f;
             float analog_r_y_sub = 0.0f;
 
-            //UDP用
-            int sockfd_main, main;
-            socklen_t clilen_main;
-            char* buffer_main = new char[16];
-            struct sockaddr_in servaddr_main, cliaddr_main;
-            std::thread udp_thread_main;
-
             int sockfd_sub, sub;
             socklen_t clilen_sub;
             char* buffer_sub = new char[16];

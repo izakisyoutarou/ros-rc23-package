@@ -49,4 +49,5 @@ class udp
         socklen_t clilen_sub;
         char* buffer_sub = new char[16];
         struct sockaddr_in servaddr_sub, cliaddr_sub;
+        std::thread udp_thread_sub;
 };

@@ -27,6 +27,7 @@ find_package(controller_interface_msg REQUIRED)
 
 add_library(controller_interface_er_node
   src/controller_interface_er_node.cpp
+  src/udp.cpp
 )
 
 target_compile_definitions(controller_interface_er_node

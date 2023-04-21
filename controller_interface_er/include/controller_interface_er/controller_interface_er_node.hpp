@@ -26,6 +26,8 @@
 #include <arpa/inet.h>
 #include <cstring>//memcpyのため
 
+#include "udp.hpp"
+
 namespace controller_interface
 {
     using VelPlanner = velocity_planner::trapezoidal_velocity_planner::TrapezoidalVelocityPlanner;
@@ -176,5 +178,7 @@ namespace controller_interface
 
             VelPlanner velPlanner_injection_v;
             const VelPlannerLimit limit_injection;
+
+            udp udp_commu;
     };
 }

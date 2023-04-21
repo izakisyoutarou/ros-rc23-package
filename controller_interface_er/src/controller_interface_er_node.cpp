@@ -26,7 +26,9 @@ namespace controller_interface
         dtor(get_parameter("injection_max_vel").as_double()),
         dtor(get_parameter("injection_max_acc").as_double()),
         dtor(get_parameter("injection_max_dec").as_double()) ),
-
+        udp_commu(
+        get_parameter("udp_port_main").as_int(),
+        get_parameter("udp_port_sub").as_int()),
         defalt_pitch(static_cast<float>(get_parameter("defalt_pitch").as_double())),
         manual_linear_max_vel(static_cast<float>(get_parameter("linear_max_vel").as_double())),
         manual_angular_max_vel(dtor(static_cast<float>(get_parameter("angular_max_vel").as_double()))),
@@ -166,7 +168,7 @@ namespace controller_interface
             servaddr_main.sin_addr.s_addr = htonl(INADDR_ANY);
             servaddr_main.sin_port = htons(udp_port_main);
             bind(sockfd_main, (struct sockaddr *) &servaddr_main, sizeof(servaddr_main));
-            udp_thread_main = std::thread(&SmartphoneGamepad::callback_udp_main, this, sockfd_main);
+            //udp_thread_main = std::thread(&udp::callback_udp_main, this, sockfd_main);
 
             sockfd_sub = socket(AF_INET, SOCK_DGRAM, 0);
             memset(&servaddr_sub, 0, sizeof(servaddr_sub));
@@ -563,6 +565,10 @@ namespace controller_interface
 
             bool flag_move_autonomous = false;
             bool flag_injection_autonomous = false;
+
+            analog_l_x_main = udp_commu.analog_l_x_main();
+            analog_l_y_main = udp_commu.analog_l_y_main();
+            analog_r_x_main = udp_commu.analog_r_x_main();
 
             if(is_move_autonomous == false)
             {

@@ -83,7 +83,8 @@ namespace injection_param_calculator{
     bool InjectionParamCalculator::calculateVelocity(){
         int num_loop = 0;
         double old_velocity = calculateFirstVelocity();
-        RCLCPP_INFO(get_logger(),"first_velocity: %lf",old_velocity);        
+        RCLCPP_INFO(get_logger(),"first_velocity: %lf",old_velocity);
+        
         bool isConvergenced = false;
         bool isAiming = false;
         while(!isAiming){

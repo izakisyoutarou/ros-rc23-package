@@ -17,10 +17,13 @@ namespace injection_param_calculator{
             rclcpp::Subscription<injection_interface_msg::msg::InjectionCommand>::SharedPtr _sub_injection_command;
             rclcpp::QoS _qos = rclcpp::QoS(10);
 
+            rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _sub_is_move_tracing;
+
             rclcpp::Publisher<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _pub_can;
             rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr _pub_isConvergenced;
 
             void callback_injection(const injection_interface_msg::msg::InjectionCommand::SharedPtr msg);
+            void callback_is_move_tracing(const std_msgs::msg::Bool::SharedPtr msg);
 
             double f(double v0);
             double diff(double v0);
@@ -48,5 +51,7 @@ namespace injection_param_calculator{
             const double angle_bounds;    //角度の境界
             const int max_loop;   //ニュートン法の最大繰り返し数
             const double eps = 1e-6;
+
+            bool is_move_tracking;
     };
 }

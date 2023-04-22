@@ -28,6 +28,11 @@ namespace injection_param_calculator{
                 _qos,
                 std::bind(&InjectionParamCalculator::callback_injection,this,std::placeholders::_1)
             );
+            _sub_is_move_tracing = this->create_subscription<std_msgs::msg::Bool>(
+                "is_move_tracking",
+                _qos,
+                std::bind(&InjectionParamCalculator::callback_is_move_tracing,this,std::placeholders::_1)
+            );
 
             _pub_can = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx",_qos);
             _pub_isConvergenced = this->create_publisher<std_msgs::msg::Bool>("is_calculator_convergenced_"+to_string(mech_num),_qos);
@@ -58,6 +63,9 @@ namespace injection_param_calculator{
         uint8_t _candata[8];
         float_to_bytes(_candata, static_cast<float>(elevation));
         float_to_bytes(_candata+4, static_cast<float>(velocity));
+        if(is_move_tracking){
+            float_to_bytes(_candata+4, 0);
+        }
         for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
 
         msg_yaw->canid = 0x210 + 2*mech_num + 1;
@@ -80,6 +88,12 @@ namespace injection_param_calculator{
             elevation = dtor(pitch_limit[1]);
         }
     }
+
+    void InjectionParamCalculator::callback_is_move_tracing(const std_msgs::msg::Bool::SharedPtr msg)
+    {
+        is_move_tracking = msg->data;
+    }
+
     bool InjectionParamCalculator::calculateVelocity(){
         int num_loop = 0;
         double old_velocity = calculateFirstVelocity();
@@ -138,4 +152,6 @@ namespace injection_param_calculator{
     double InjectionParamCalculator::diff(double v0){
         return (f(v0 + eps) - f(v0 - eps))/(2*eps);
     }
+
+
 }

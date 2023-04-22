@@ -28,10 +28,20 @@ namespace injection_param_calculator{
                 _qos,
                 std::bind(&InjectionParamCalculator::callback_injection,this,std::placeholders::_1)
             );
-            _sub_is_move_tracing = this->create_subscription<std_msgs::msg::Bool>(
-                "is_move_tracking",
+            _sub_is_convergence = this->create_subscription<controller_interface_msg::msg::Convergence>(
+                "pub_convergence",
                 _qos,
-                std::bind(&InjectionParamCalculator::callback_is_move_tracing,this,std::placeholders::_1)
+                std::bind(&InjectionParamCalculator::callback_is_convergence,this,std::placeholders::_1)
+            );
+            _sub_pad = this->create_subscription<controller_interface_msg::msg::SubPad>(
+                "sub_pad_er_sub",
+                _qos,
+                std::bind(&InjectionParamCalculator::callback_sub_pad,this,std::placeholders::_1)
+            );
+            _sub_base_control = this->create_subscription<controller_interface_msg::msg::BaseControl>(
+                "pub_base_control",
+                _qos,
+                std::bind(&InjectionParamCalculator::callback_base_control,this,std::placeholders::_1)
             );
 
             _pub_can = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx",_qos);
@@ -63,7 +73,7 @@ namespace injection_param_calculator{
         uint8_t _candata[8];
         float_to_bytes(_candata, static_cast<float>(elevation));
         float_to_bytes(_candata+4, static_cast<float>(velocity));
-        if(is_move_tracking){
+        if(is_convergence){
             float_to_bytes(_candata+4, 0);
         }
         for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
@@ -74,6 +84,44 @@ namespace injection_param_calculator{
         for(int i=0; i<msg_yaw->candlc; i++) msg_yaw->candata[i] = _candata[i];
         _pub_isConvergenced->publish(*msg_isConvergenced);
         if(isConvergenced){
+            _pub_can->publish(*msg_injection);
+            _pub_can->publish(*msg_yaw);
+        }
+    }
+    void InjectionParamCalculator::callback_sub_pad(const controller_interface_msg::msg::SubPad::SharedPtr msg){
+        auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
+        if(msg->x){
+            elevation = dtor(angle_choice);
+            velocity = 0.0;
+            msg_injection->canid = 0x210 + 2*mech_num;
+            msg_injection->candlc = 8;
+            //送信
+            uint8_t _candata[8];
+            float_to_bytes(_candata, static_cast<float>(elevation));
+            float_to_bytes(_candata+4, static_cast<float>(velocity));
+            for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
+            _pub_can->publish(*msg_injection);
+        }
+    }
+    void InjectionParamCalculator::callback_base_control(const controller_interface_msg::msg::BaseControl::SharedPtr msg){
+        auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
+        auto msg_yaw = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
+        if(msg->is_restart){
+            elevation = dtor(angle_choice);
+            velocity = 0.0;
+            direction = 0.0;
+            msg_injection->canid = 0x210 + 2*mech_num;
+            msg_injection->candlc = 8;
+            //送信
+            uint8_t _candata[8];
+            float_to_bytes(_candata, static_cast<float>(elevation));
+            float_to_bytes(_candata+4, static_cast<float>(velocity));
+            for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
+            
+            msg_yaw ->canid = 0x210 + 2*mech_num + 1;
+            msg_yaw ->candlc = 4;
+            float_to_bytes(_candata, static_cast<float>(direction));
+            for(int i=0; i<msg_yaw->candlc; i++) msg_yaw->candata[i] = _candata[i];
             _pub_can->publish(*msg_injection);
             _pub_can->publish(*msg_yaw);
         }
@@ -89,9 +137,9 @@ namespace injection_param_calculator{
         }
     }
 
-    void InjectionParamCalculator::callback_is_move_tracing(const std_msgs::msg::Bool::SharedPtr msg)
+    void InjectionParamCalculator::callback_is_convergence(const controller_interface_msg::msg::Convergence::SharedPtr msg)
     {
-        is_move_tracking = msg->data;
+        is_convergence = msg->spline_convergence;
     }
 
     bool InjectionParamCalculator::calculateVelocity(){

@@ -20,6 +20,7 @@ find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(socketcan_interface_msg REQUIRED)
+find_package(controller_interface_msg REQUIRED)
 find_package(injection_interface_msg REQUIRED)
 find_package(utilities REQUIRED)
 
@@ -33,6 +34,7 @@ ament_target_dependencies(injection_param_calculator_node
   rclcpp
   std_msgs
   socketcan_interface_msg
+  controller_interface_msg
   injection_interface_msg
   utilities
 )
@@ -78,6 +80,7 @@ ament_export_dependencies(
     rclcpp
     std_msgs
     socketcan_interface_msg
+    controller_interface_msg
     injection_interface_msg
     utilities
 )

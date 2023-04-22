@@ -25,6 +25,7 @@ namespace injection_param_calculator{
             double f(double v0);
             double diff(double v0);
             void calculateElevation();
+            double calculateFirstVelocity();
             bool calculateVelocity();
 
             injection_interface_msg::msg::InjectionCommand injection_comand;

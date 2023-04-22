@@ -82,13 +82,8 @@ namespace injection_param_calculator{
     }
     bool InjectionParamCalculator::calculateVelocity(){
         int num_loop = 0;
-        double old_velocity = calculat_first_velocity;
-        if(elevation == dtor(pitch_limit[1])){
-            old_velocity = calculate_first_velocity_low;
-        }
-        else{
-            old_velocity = calculat_first_velocity;
-        }
+        double old_velocity = calculateFirstVelocity();
+        RCLCPP_INFO(get_logger(),"first_velocity: %lf",old_velocity);        
         bool isConvergenced = false;
         bool isAiming = false;
         while(!isAiming){
@@ -117,6 +112,14 @@ namespace injection_param_calculator{
         }
 
         return isConvergenced;
+    }
+    double InjectionParamCalculator::calculateFirstVelocity(){
+        double c_sin = sin(elevation);
+        double c_cos = cos(elevation);
+        double c_tan = tan(elevation);
+        double x = injection_comand.distance - injection_length*c_cos;
+        double y = injection_comand.height -(foundation_hight + injection_length*c_sin);
+        double first_velocity = sqrt(gravitational_accelerastion*x*x/(2*c_cos*c_cos*(x*c_tan - y)));
     }
     double InjectionParamCalculator::f(double v0){
         double c_sin = sin(elevation);

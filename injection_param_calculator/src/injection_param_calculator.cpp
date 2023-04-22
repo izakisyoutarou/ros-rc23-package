@@ -62,7 +62,7 @@ namespace injection_param_calculator{
 
         msg_yaw->canid = 0x210 + 2*mech_num + 1;
         msg_yaw->candlc = 4;
-        float_to_bytes(_candata, static_cast<float>(direction));
+        float_to_bytes(_candata, static_cast<float>(injection_comand.direction));
         for(int i=0; i<msg_yaw->candlc; i++) msg_yaw->candata[i] = _candata[i];
         _pub_isConvergenced->publish(*msg_isConvergenced);
         if(isConvergenced){

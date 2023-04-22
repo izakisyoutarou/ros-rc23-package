@@ -135,6 +135,7 @@ namespace injection_param_calculator{
         double x = injection_comand.distance - injection_length*c_cos;
         double y = injection_comand.height -(foundation_hight + injection_length*c_sin);
         double first_velocity = sqrt(gravitational_accelerastion*x*x/(2*c_cos*c_cos*(x*c_tan - y)));
+        return first_velocity;
     }
     double InjectionParamCalculator::f(double v0){
         double c_sin = sin(elevation);

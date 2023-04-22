@@ -41,7 +41,9 @@ namespace injection_param_calculator{
         injection_comand.distance = msg->distance;
         injection_comand.direction = msg->direction;
         injection_comand.height = msg->height;
-        RCLCPP_INFO(this->get_logger(),"elavation: %lf",injection_comand.direction);
+        RCLCPP_INFO(get_logger(),"distance: %lf",msg->distance);
+        RCLCPP_INFO(get_logger(),"height: %lf",msg->height);
+        RCLCPP_INFO(get_logger(),"direction: %lf",msg->direction);
 
         calculateElevation();
         isConvergenced = calculateVelocity();

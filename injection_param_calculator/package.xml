@@ -11,7 +11,7 @@
   <depend>rclcpp</depend>
   <depend>std_msgs</depend>
   <depend>injection_interface_msg</depend>
-  <depend>controller_interfce_msg</depend>
+  <depend>controller_interface_msg</depend>
   <depend>socketcan_interface_msg</depend>
   <depend>utilities</depend>
 

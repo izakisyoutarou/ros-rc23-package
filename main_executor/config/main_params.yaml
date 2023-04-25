@@ -7,7 +7,7 @@ launch: #起動パラメータ
 
 /**:  #ワイルドカード(ここのパラメータは全ノードから読める: <名前に注意>)
   ros__parameters:
-    initial_pose: [-5.45, 0.0, 0.0]  #初期位置[x,y,yaw]
+    initial_pose: [-5.45, 0.3, 0.0]  #初期位置[x,y,yaw]
 
     # 自動の並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
     linear_max_vel: 2.0
@@ -60,14 +60,14 @@ spline_pid_node:
 
     linear_planner_gain: 0.1 #並進速度計画機ゲイン  1.3
     linear_pos_gain: 3.0  #並進位置ズレのゲイン 3.5
-    linear_pos_diff_gain: 0.3
-    linear_pos_integral_gain: 0.0  #並進位置ズレの積分ゲイン
+    linear_pos_diff_gain: 0.1
+    linear_pos_integral_gain: 0.01  #並進位置ズレの積分ゲイン
 
     angular_planner_gain: 1.7 #回転速度計画機ゲイン
     angular_pos_gain: 2.3 #回転位置ズレのゲイン
     angular_pos_integral_gain: 0.03  #回転位置ズレの積分ゲイン 0.01
 
-    linear_pos_tolerance: 0.01  #並進到達位置の許容誤差[m]
+    linear_pos_tolerance: 0.03  #並進到達位置の許容誤差[m]
     angular_pos_tolerance: 2.0  #回転到達位置の許容誤差[deg]
 
 spline_trajectories_node:
@@ -92,18 +92,18 @@ injection_param_calculator_node:
   ros__parameters:
     ring_weight: 0.10  #リングの質量[kg]
     gravitational_accelerastion: 9.80665  #重力加速度[m/s^2]
-    air_resistance_coefficient: 0.104109  #空気抵抗係数[kg/s]
+    air_resistance_coefficient: 0.01  #空気抵抗係数[kg/s]
     injection_length: 0.215  #射出機構の長さ[m]
     foundation_hight: 0.2785  #射出機構の地面からの高さ[m]
-    calculat_first_velocity: 10.0  #初速度の初期値[m/s]
+    calculat_first_velocity: 9.0  #初速度の初期値[m/s]
     calculate_first_velocity_low: 5.5 #初速度の初期値(近いポール)
     velocity_lim_max: 15.0 #最大初速度[m/s]
-    angle_choice: 45.0  #リングが入りやすい角度[deg]
+    angle_choice: 50.0  #リングが入りやすい角度[deg]
     angle_bounds: 24.0  #射角の境界[deg]
     max_loop: 100  #ニュートン法の最大繰り返し数
-    pitch_limit: [15.0,53.0]  #射角の最小最大[deg]
-    yow_limit_m0: [-70.0,70.0] #左の射出機構の方向角の最小最大[deg]
-    yow_limit_m1: [-70.0,70.0] #右の射出機構の方向角の最小最大[deg]
+    pitch_limit: [15.0,50.0]  #射角の最小最大[deg]
+    yow_limit_m0: [-60.0,60.0] #左の射出機構の方向角の最小最大[deg]
+    yow_limit_m1: [-60.0,60.0] #右の射出機構の方向角の最小最大[deg]
 
 injection_interface_node:
   ros__parameters:
@@ -121,5 +121,5 @@ RANSAC_localization:
     trial_num: 40
     inlier_dist_threshold: 0.01
     inlier_length_threshold: 1.3
-    initial_pose: [-5.45, 0.0, 0.0]  #初期位置[x,y,yaw]
+    initial_pose: [-5.45, 0.3, 0.0]  #初期位置[x,y,yaw]
     tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]

@@ -38,8 +38,6 @@ namespace controller_interface
         defalt_move_autonomous_flag(get_parameter("defalt_move_autonomous_flag").as_bool()),
         defalt_injection_autonomous_flag(get_parameter("defalt_injection_autonomous_flag").as_bool()),
         defalt_injection_mec(get_parameter("defalt_injection_mec").as_int()),
-        udp_port_main(get_parameter("udp_port_main").as_int()),
-        udp_port_sub(get_parameter("udp_port_sub").as_int()),
         udp_port_pole_er(get_parameter("udp_port_pole_er").as_int()),
         udp_port_pole_rr(get_parameter("udp_port_pole_rr").as_int()),
         udp_timeout_ms(get_parameter("udp_timeout_ms").as_int())
@@ -160,20 +158,6 @@ namespace controller_interface
             velPlanner_linear_y.limit(limit_linear);
             velPlanner_angular_z.limit(limit_angular);
             velPlanner_injection_v.limit(limit_injection);
-
-            sockfd_sub = socket(AF_INET, SOCK_DGRAM, 0);
-            memset(&servaddr_sub, 0, sizeof(servaddr_sub));
-            servaddr_sub.sin_family = AF_INET;
-            servaddr_sub.sin_addr.s_addr = htonl(INADDR_ANY);
-            servaddr_sub.sin_port = htons(udp_port_sub);
-            bind(sockfd_sub, (struct sockaddr *) &servaddr_sub, sizeof(servaddr_sub));
-            //udp_thread_sub = std::thread(&SmartphoneGamepad::callback_udp_sub, this, sockfd_sub);
-
-            sockfd_er = socket(AF_INET, SOCK_DGRAM, 0);
-            memset(&servaddr_er, 0, sizeof(servaddr_er));
-            servaddr_er.sin_family = AF_INET;
-            servaddr_er.sin_addr.s_addr = inet_addr(ER_IP);
-            servaddr_er.sin_port = htons(udp_port_pole_er);
         }
 
         void SmartphoneGamepad::callback_pad_main(const controller_interface_msg::msg::SubPad::SharedPtr msg)
@@ -282,7 +266,7 @@ namespace controller_interface
             msg_injection->candlc = 2;
 
             auto msg_btn = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_btn->canid = 0x300;
+            msg_btn->canid = 0x2200;
             msg_btn->candlc = 8;
 
             auto msg_scrn_pole_restart = std::make_shared<std_msgs::msg::String>(); 
@@ -424,56 +408,6 @@ namespace controller_interface
             _pub_scrn_string->publish(*msg_scrn_pole);
         }
 
-        void SmartphoneGamepad::callback_udp_sub(int sockfd)
-        {
-            char buffers[BUFFER_NUM][13];
-            int cur_buf = 0;
-            struct timeval tv;
-            tv.tv_usec = udp_timeout_ms;
-
-            while(rclcpp::ok())
-            {
-                clilen_sub = sizeof(cliaddr_sub);
-
-                // ノンブロッキングモードでrecvfromを呼び出す
-                fd_set read_fds;
-                FD_ZERO(&read_fds);
-                FD_SET(sockfd, &read_fds);
-                int sel = select(sockfd + 1, &read_fds, NULL, NULL, &tv);
-                if (sel == -1)
-                {
-                    perror("select");
-                    continue;
-                }
-                else if (sel == 0)
-                {
-                    // タイムアウトした場合、再試行
-                    continue;
-                }
-
-                // bufferに受信したデータが格納されている
-                sub = recvfrom(sockfd, buffers[cur_buf], BUFSIZE, 0, (struct sockaddr *) &cliaddr_sub, &clilen_sub);
-
-                if (sub < 0)
-                {
-                    perror("recvfrom");
-                    continue;
-                }
-
-                if (setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (const char*)&tv, sizeof(tv)) < 0) 
-                {
-                    perror("setsockopt");
-                    continue;
-                }               
-
-                std::memcpy(&analog_l_x_sub, &buffers[cur_buf][0], sizeof(analog_l_x_sub));
-                std::memcpy(&analog_l_y_sub, &buffers[cur_buf][4], sizeof(analog_l_y_sub));
-                std::memcpy(&analog_r_x_sub, &buffers[cur_buf][8], sizeof(analog_r_x_sub));
-                std::memcpy(&analog_r_y_sub, &buffers[cur_buf][12], sizeof(analog_r_y_sub));   
-                cur_buf = (cur_buf + 1) % BUFFER_NUM;
-            }
-        }
-
         void SmartphoneGamepad::callback_move_injection_heteronomy()
         {
             auto msg_linear = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
@@ -507,9 +441,14 @@ namespace controller_interface
             bool flag_move_autonomous = false;
             bool flag_injection_autonomous = false;
 
-            analog_l_x_main = udp_commu.analog_l_x_main();
-            analog_l_y_main = udp_commu.analog_l_y_main();
-            analog_r_x_main = udp_commu.analog_r_x_main();
+            float analog_l_x_main = udp_commu.analog_l_x_main();
+            float analog_l_y_main = udp_commu.analog_l_y_main();
+            float analog_r_x_main = udp_commu.analog_r_x_main();
+
+            float analog_l_x_sub = udp_commu.analog_l_x_sub();
+            float analog_l_y_sub = udp_commu.analog_l_y_sub();
+            float analog_r_x_sub = udp_commu.analog_r_x_sub();
+            float analog_r_y_sub = udp_commu.analog_r_y_sub();
 
             if(is_move_autonomous == false)
             {

@@ -86,9 +86,6 @@ namespace controller_interface
             void callback_pad_sub(const controller_interface_msg::msg::SubPad::SharedPtr msg);
             void callback_scrn_pole(const std_msgs::msg::String::SharedPtr msg);
 
-            void callback_udp_main(int sockfd);
-            void callback_udp_sub(int sockfd);
-
             //mainからのcallback
             void callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg);
             void callback_injection_complete(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg);
@@ -127,39 +124,9 @@ namespace controller_interface
             const bool defalt_injection_autonomous_flag;
             const bool defalt_emergency_flag;
             const bool defalt_injection_mec;
-            const int udp_port_main;
-            const int udp_port_sub;
             const int udp_port_pole_er;
             const int udp_port_pole_rr;
             const int udp_timeout_ms;
-
-            //Joyの値を格納(main)
-            float analog_l_x_main = 0.0f;
-            float analog_l_y_main = 0.0f;
-            float analog_r_x_main = 0.0f;
-            float analog_r_y_main = 0.0f;
-
-            //Joyの値を格納(sub)
-            float analog_l_x_sub = 0.0f;
-            float analog_l_y_sub = 0.0f;
-            float analog_r_x_sub = 0.0f;
-            float analog_r_y_sub = 0.0f;
-
-            int sockfd_sub, sub;
-            socklen_t clilen_sub;
-            char* buffer_sub = new char[16];
-            struct sockaddr_in servaddr_sub, cliaddr_sub;
-            std::thread udp_thread_sub;
-
-            int sockfd_er, er;
-            socklen_t clilen_er;
-            char* buffer_er = new char[16];
-            struct sockaddr_in servaddr_er, cliaddr_er;
-
-            int sockfd_rr, rr;
-            socklen_t clilen_rr;
-            char* buffer_rr = new char[16];
-            struct sockaddr_in servaddr_rr, cliaddr_rr;
 
             //計画機
             VelPlanner velPlanner_linear_x;

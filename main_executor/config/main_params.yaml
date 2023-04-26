@@ -95,8 +95,9 @@ injection_param_calculator_node:
     injection_length: 0.39  #射出機構の長さ[m]
     foundation_hight: 0.2785  #射出機構の地面からの高さ[m]
     calculat_first_velocity: 7.5  #初速度の初期値[m/s]
-    calculate_first_velocity_low: 4.0 #初速度の初期値(近いポール)
+    calculate_first_velocity_low: 4.0 #初速度の初期値(近いポール)[m/s]
     velocity_lim_max: 15.0 #最大初速度[m/s]
+    injection_angle: 48.0 #射出角度[deg]
     angle_choice: 45.0  #リングが入りやすい角度[deg]
     angle_bounds: 24.26  #射角の境界[deg]
     max_loop: 100  #ニュートン法の最大繰り返し数

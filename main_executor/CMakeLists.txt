@@ -7,7 +7,7 @@ endif()
 find_package(rclcpp REQUIRED)
 find_package(socketcan_interface REQUIRED)
 find_package(mcl_2d REQUIRED)
-find_package(controller_interface REQUIRED)
+find_package(controller_interface_er REQUIRED)
 find_package(spline_pid REQUIRED)
 find_package(injection_param_calculator REQUIRED)
 find_package(injection_interface REQUIRED)
@@ -21,7 +21,7 @@ ament_target_dependencies(main_exec
         rclcpp
         socketcan_interface
         mcl_2d
-        controller_interface
+        controller_interface_er
         spline_pid
         injection_param_calculator
         injection_interface

@@ -155,6 +155,9 @@ namespace injection_param_calculator{
     //         elevation = dtor(pitch_limit[1]);
     //     }
     // }
+    void InjectionParamCalculator::callback_is_convergence(const controller_interface_msg::msg::Convergence::SharedPtr msg){
+        is_convergence = msg->spline_convergence;
+    }
     bool InjectionParamCalculator::calculateVelocity(){
         bool isConvergence = false;
         double g = gravitational_accelerastion;

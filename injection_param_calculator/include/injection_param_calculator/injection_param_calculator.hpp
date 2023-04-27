@@ -58,5 +58,6 @@ namespace injection_param_calculator{
             const double injection_angle;   //射出角度
             // const int max_loop;   //ニュートン法の最大繰り返し数
             // const double eps = 1e-6;
+            bool is_convergence;
     };
 }

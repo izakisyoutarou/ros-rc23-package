@@ -102,8 +102,8 @@ injection_param_calculator_node:
     angle_bounds: 24.26  #射角の境界[deg]
     max_loop: 100  #ニュートン法の最大繰り返し数
     pitch_limit: [15.0,53.0]  #射角の最小最大[deg]
-    yow_limit_m0: [-70.0,0.0] #左の射出機構の方向角の最小最大[deg]
-    yow_limit_m1: [0.0,70.0] #右の射出機構の方向角の最小最大[deg]
+    yow_limit_m0: [-60.0,60.0] #左の射出機構の方向角の最小最大[deg]
+    yow_limit_m1: [-60.0,60.0] #右の射出機構の方向角の最小最大[deg]
 
 injection_interface_node:
   ros__parameters:

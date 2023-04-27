@@ -16,7 +16,6 @@ int main(int argc, char * argv[]){
     nodes_option.automatically_declare_parameters_from_overrides(true);
 
     auto socketcan_node = std::make_shared<socketcan_interface::SocketcanInterface>(nodes_option);
-    // auto mcl_2d_node = std::make_shared<mcl_2d::Mcl2D>(nodes_option);
     auto RANSAC_localization = std::make_shared<self_localization::RANSACLocalization>(nodes_option);
     auto controller_commonproces_node = std::make_shared<controller_interface::CommonProces>(nodes_option);
     auto controller_node = std::make_shared<controller_interface::SmartphoneGamepad>(nodes_option);
@@ -35,6 +34,7 @@ int main(int argc, char * argv[]){
     exec.add_node(injection_interface_node1);
     exec.add_node(injection_param_calclator_node0);
     exec.add_node(injection_param_calclator_node1);
+
 
     exec.spin();
     rclcpp::shutdown();

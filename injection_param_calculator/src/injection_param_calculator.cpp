@@ -29,24 +29,27 @@ namespace injection_param_calculator{
                 _qos,
                 std::bind(&InjectionParamCalculator::callback_injection,this,std::placeholders::_1)
             );
+            _sub_is_convergence = this->create_subscription<controller_interface_msg::msg::Convergence>(
+                "pub_convergence",
+                _qos,
+                std::bind(&InjectionParamCalculator::callback_is_convergence,this,std::placeholders::_1)
+            );
+            _sub_pad = this->create_subscription<controller_interface_msg::msg::SubPad>(
+                "sub_pad_er_sub",
+                _qos,
+                std::bind(&InjectionParamCalculator::callback_sub_pad,this,std::placeholders::_1)
+            );
+            _sub_base_control = this->create_subscription<controller_interface_msg::msg::BaseControl>(
+                "pub_base_control",
+                _qos,
+                std::bind(&InjectionParamCalculator::callback_base_control,this,std::placeholders::_1)
+            );
 
             _pub_can = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx",_qos);
-            //_pub_injection_direction = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx",_qos);
             _pub_isConvergenced = this->create_publisher<std_msgs::msg::Bool>("is_calculator_convergenced_"+to_string(mech_num),_qos);
-            //_pub_test_injection = this->create_publisher<injection_interface_msg::msg::InjectionCommand>("injcetion_command_m"+to_string(mech_num),_qos);
             RCLCPP_INFO(this->get_logger(),"create injection_"+to_string(mech_num));
-            // RCLCPP_INFO(this->get_logger(),"max_loop: %d ",max_loop);
-            // RCLCPP_INFO(this->get_logger(),"mech_num: %d yow_lim_min: %lf yow_lim_max: %lf ",mech_num,yow_limit[0],yow_limit[1]);
         }
     void InjectionParamCalculator::callback_injection(const injection_interface_msg::msg::InjectionCommand::SharedPtr msg){
-        // auto msg_injection_parameter = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-        // msg_injection_parameter->canid = 0x130 + 2*mech_num;
-        // msg_injection_parameter->candlc = 8;
-        // RCLCPP_INFO(this->get_logger(),"mech_num: %d msg_injection_parameter_canid: %x",mech_num,msg_injection_parameter->canid);
-        // auto msg_injection_direction = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-        // msg_injection_direction->canid = 0x130 + 2*mech_num + 1;
-        // msg_injection_direction->candlc = 4;
-        // RCLCPP_INFO(this->get_logger(),"mech_num: %d msg_injection_direction_canid: %x",mech_num,msg_injection_direction->canid);
         auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
         auto msg_yaw = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
         auto msg_isConvergenced = std::make_shared<std_msgs::msg::Bool>();
@@ -54,7 +57,6 @@ namespace injection_param_calculator{
         injection_comand.distance = msg->distance;
         injection_comand.direction = msg->direction;
         injection_comand.height = msg->height;
-        // RCLCPP_INFO(this->get_logger(),"elavation: %lf",injection_comand.direction);
         RCLCPP_INFO(get_logger(),"distance: %lf",injection_comand.distance);
         RCLCPP_INFO(get_logger(),"height: %lf",injection_comand.height);
         RCLCPP_INFO(get_logger(),"direction: %lf",injection_comand.direction);
@@ -79,7 +81,6 @@ namespace injection_param_calculator{
         float_to_bytes(_candata, static_cast<float>(velocity));
         // float_to_bytes(_candata+4, static_cast<float>(velocity));
         for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
-        // std::copy(std::begin(_candata), std::end(_candata), msg_injection->candata.begin());
 
         msg_yaw->canid = 0x210 + 2*mech_num + 1;
         msg_yaw->candlc = 4;

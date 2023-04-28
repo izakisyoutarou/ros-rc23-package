@@ -5,7 +5,8 @@
 //使うmsg
 #include "socketcan_interface_msg/msg/socketcan_if.hpp"
 #include "controller_interface_msg/msg/base_control.hpp"
-#include "controller_interface_msg/msg/sub_pad.hpp"
+#include "controller_interface_msg/msg/pad.hpp"
+#include "controller_interface_msg/msg/pole.hpp"
 #include "controller_interface_msg/msg/convergence.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "sensor_msgs/msg/joy.hpp"
@@ -44,11 +45,11 @@ namespace controller_interface
 
         private:
             //ER_mainのcontrollerから
-            rclcpp::Subscription<controller_interface_msg::msg::SubPad>::SharedPtr _sub_pad_main;
+            rclcpp::Subscription<controller_interface_msg::msg::Pad>::SharedPtr _sub_pad_main;
+            rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_state_num_ER;
+            rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_state_num_RR;
             //ER_subのcontrollerから
-            rclcpp::Subscription<controller_interface_msg::msg::SubPad>::SharedPtr _sub_pad_sub;
-            rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_scrn_pole_0;
-            rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_scrn_pole_1;
+            rclcpp::Subscription<controller_interface_msg::msg::Pad>::SharedPtr _sub_pad_sub;
 
             //mainボードから
             rclcpp::Subscription<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _sub_main_injection_possible;
@@ -82,8 +83,11 @@ namespace controller_interface
             rclcpp::QoS _qos = rclcpp::QoS(10);
 
             //controllerからのcallback
-            void callback_pad_main(const controller_interface_msg::msg::SubPad::SharedPtr msg);
-            void callback_pad_sub(const controller_interface_msg::msg::SubPad::SharedPtr msg);
+            void callback_pad_main(const controller_interface_msg::msg::Pad::SharedPtr msg);
+            void callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg);
+            void callback_state_num_RR(const std_msgs::msg::String::SharedPtr msg);
+            
+            void callback_pad_sub(const controller_interface_msg::msg::Pad::SharedPtr msg);
             void callback_scrn_pole(const std_msgs::msg::String::SharedPtr msg);
 
             //mainからのcallback

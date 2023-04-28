@@ -45,29 +45,29 @@ namespace controller_interface
             const auto heartbeat_ms = this->get_parameter("heartbeat_ms").as_int();
             const auto move_injection_heteronomy_ms = this->get_parameter("move_injection_heteronomy_ms").as_int();
 
-            //controllerからsub
-            _sub_pad_main = this->create_subscription<controller_interface_msg::msg::SubPad>(
+            //controller_mainからsub
+            _sub_pad_main = this->create_subscription<controller_interface_msg::msg::Pad>(
                 "pad_main",
                 _qos,
                 std::bind(&SmartphoneGamepad::callback_pad_main, this, std::placeholders::_1)
             );
 
-            _sub_pad_sub = this->create_subscription<controller_interface_msg::msg::SubPad>(
+            _sub_state_num_ER = this->create_subscription<std_msgs::msg::String>(
+                "state_num_ER",
+                _qos,
+                std::bind(&SmartphoneGamepad::callback_state_num_ER, this, std::placeholders::_1)
+            );
+
+            _sub_state_num_RR = this->create_subscription<std_msgs::msg::String>(
+                "state_num_RR",
+                _qos,
+                std::bind(&SmartphoneGamepad::callback_state_num_RR, this, std::placeholders::_1)
+            );
+
+            _sub_pad_sub = this->create_subscription<controller_interface_msg::msg::Pad>(
                 "pad_sub",
                 _qos,
                 std::bind(&SmartphoneGamepad::callback_pad_sub, this, std::placeholders::_1)
-            );
-
-            _sub_scrn_pole_0 = this->create_subscription<std_msgs::msg::String>(
-                "injection_pole_m0",
-                _qos,
-                std::bind(&SmartphoneGamepad::callback_scrn_pole, this, std::placeholders::_1)
-            );
-
-            _sub_scrn_pole_1 = this->create_subscription<std_msgs::msg::String>(
-                "injection_pole_m1",
-                _qos,
-                std::bind(&SmartphoneGamepad::callback_scrn_pole, this, std::placeholders::_1)
             );
 
             //mainからsub
@@ -160,7 +160,7 @@ namespace controller_interface
             velPlanner_injection_v.limit(limit_injection);
         }
 
-        void SmartphoneGamepad::callback_pad_main(const controller_interface_msg::msg::SubPad::SharedPtr msg)
+        void SmartphoneGamepad::callback_pad_main(const controller_interface_msg::msg::Pad::SharedPtr msg)
         {
             auto msg_restart = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
             msg_restart->canid = 0x002;
@@ -251,7 +251,7 @@ namespace controller_interface
             }
         }
 
-        void SmartphoneGamepad::callback_pad_sub(const controller_interface_msg::msg::SubPad::SharedPtr msg)
+        void SmartphoneGamepad::callback_pad_sub(const controller_interface_msg::msg::Pad::SharedPtr msg)
         {
             auto msg_restart = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
             msg_restart->canid = 0x002;
@@ -380,32 +380,19 @@ namespace controller_interface
             }
         }
 
+        void SmartphoneGamepad::callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg)
+        {
+
+        }
+
+        void SmartphoneGamepad::callback_state_num_RR(const std_msgs::msg::String::SharedPtr msg)
+        {
+            
+        }
+
         void SmartphoneGamepad::callback_scrn_pole(const std_msgs::msg::String::SharedPtr msg)
         {
-            auto msg_scrn_pole = std::make_shared<std_msgs::msg::String>(); 
-            if(msg->data == "A") msg_scrn_pole->data = "A";
-            if(msg->data == "B") msg_scrn_pole->data = "B";
-            if(msg->data == "C") msg_scrn_pole->data = "C";
-            if(msg->data == "D") msg_scrn_pole->data = "D";
-            if(msg->data == "E") msg_scrn_pole->data = "E";
-            if(msg->data == "F") msg_scrn_pole->data = "F";
-            if(msg->data == "G") msg_scrn_pole->data = "G";
-            if(msg->data == "H") msg_scrn_pole->data = "H";
-            if(msg->data == "I") msg_scrn_pole->data = "I";
-            if(msg->data == "J") msg_scrn_pole->data = "J";
-            if(msg->data == "K") msg_scrn_pole->data = "K";
-            if(msg->data == "NotA") msg_scrn_pole->data = "NotA";
-            if(msg->data == "NotB") msg_scrn_pole->data = "NotB";
-            if(msg->data == "NotC") msg_scrn_pole->data = "NotC";
-            if(msg->data == "NotD") msg_scrn_pole->data = "NotD";
-            if(msg->data == "NotE") msg_scrn_pole->data = "NotE";
-            if(msg->data == "NotF") msg_scrn_pole->data = "NotF";
-            if(msg->data == "NotG") msg_scrn_pole->data = "NotG";
-            if(msg->data == "NotH") msg_scrn_pole->data = "NotH";
-            if(msg->data == "NotI") msg_scrn_pole->data = "NotI";
-            if(msg->data == "NotJ") msg_scrn_pole->data = "NotJ";
-            if(msg->data == "NotK") msg_scrn_pole->data = "NotK";
-            _pub_scrn_string->publish(*msg_scrn_pole);
+ 
         }
 
         void SmartphoneGamepad::callback_move_injection_heteronomy()

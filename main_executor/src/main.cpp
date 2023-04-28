@@ -1,7 +1,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include "socketcan_interface/socketcan_interface_node.hpp"
 #include "mcl_2d/mcl_2d_node.hpp"
-#include "controller_interface_er/controller_interface_er_node.hpp"
+#include "controller_interface/controller_interface_node.hpp"
 #include "spline_pid/spline_pid_node.hpp"
 #include "injection_interface/injection_interface_node.hpp"
 #include "injection_param_calculator/injection_param_calculator.hpp"

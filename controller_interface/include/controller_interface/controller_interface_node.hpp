@@ -16,7 +16,7 @@
 #include "utilities/can_utils.hpp"
 #include "utilities/utils.hpp"
 #include "trapezoidal_velocity_planner.hpp"
-#include "visibility_control.h"
+#include "my_visibility.h"
 //UDP
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -37,10 +37,10 @@ namespace controller_interface
     class SmartphoneGamepad : public rclcpp::Node
     {
         public:
-            CONTROLLER_INTERFACE_ER_PUBLIC
+            CONTROLLER_INTERFACE_PUBLIC
             explicit SmartphoneGamepad(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
             
-            CONTROLLER_INTERFACE_ER_PUBLIC
+            CONTROLLER_INTERFACE_PUBLIC
             explicit SmartphoneGamepad(const std::string& name_space, const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 
         private:

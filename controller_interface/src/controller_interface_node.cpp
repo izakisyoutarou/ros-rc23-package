@@ -1,4 +1,4 @@
-#include "controller_interface_er/controller_interface_er_node.hpp"
+#include "controller_interface/controller_interface_node.hpp"
 #include <sys/time.h>
 #include <sys/types.h>
 

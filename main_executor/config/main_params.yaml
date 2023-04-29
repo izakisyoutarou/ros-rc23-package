@@ -1,13 +1,14 @@
 launch: #起動パラメータ
   ros__parameters:
-    slcan: true
-    scan: true
-    tcp_endpoint: true
+    slcan: false
+    scan: false
+    tcp_endpoint: false
     trajectory_planner: true
 
 /**:  #ワイルドカード(ここのパラメータは全ノードから読める: <名前に注意>)
   ros__parameters:
     initial_pose: [-5.45, 0.3, 0.0]  #初期位置[x,y,yaw]
+    2nd_initial_pose: [-5.45, 0.3, 0.0] #2つ目の初期位置[x,y,yaw]
 
     # 自動の並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
     linear_max_vel: 2.0
@@ -19,6 +20,17 @@ launch: #起動パラメータ
     angular_max_acc: 180.0
     angular_max_dec: 180.0
     angular_max_jer: 0.0
+
+    canid:
+      inject: 0x200
+      injectable: 0x201
+      movable: 0x202
+      main_digital_button: 0x220
+      sub_digital_button: 0x221
+
+    port:
+      robot_state: 50000
+      pole_state: 51000
 
 controller_interface_node:
   ros__parameters:
@@ -54,6 +66,10 @@ controller_interface_node:
     defalt_injection_mec: 1
     defalt_pitch: 45.0
     
+
+sequencer_node:
+  ros__parameters:
+    interval_ms: 50
 
 spline_pid_node:
   ros__parameters:

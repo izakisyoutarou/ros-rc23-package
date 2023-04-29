@@ -29,6 +29,9 @@ namespace controller_interface
         udp_commu(
         get_parameter("udp_port_main").as_int(),
         get_parameter("udp_port_sub").as_int()),
+        socket_robot_state(
+        get_parameter("udp_port_main").as_int()
+        ),
         defalt_pitch(static_cast<float>(get_parameter("defalt_pitch").as_double())),
         manual_linear_max_vel(static_cast<float>(get_parameter("linear_max_vel").as_double())),
         manual_angular_max_vel(dtor(static_cast<float>(get_parameter("angular_max_vel").as_double()))),
@@ -68,6 +71,12 @@ namespace controller_interface
                 "pad_sub",
                 _qos,
                 std::bind(&SmartphoneGamepad::callback_pad_sub, this, std::placeholders::_1)
+            );
+
+            _sub_pole = this->create_subscription<controller_interface_msg::msg::Pole>(
+                "pole",
+                _qos,
+                std::bind(&SmartphoneGamepad::callback_pole, this, std::placeholders::_1)
             );
 
             //mainからsub
@@ -236,7 +245,6 @@ namespace controller_interface
             if(msg->a || msg->b || msg->y || msg->x || msg->right || msg->down || msg->left || msg->up)
             {
                 _pub_canusb->publish(*msg_btn);
-                //RCLCPP_INFO(this->get_logger(), "a:%db:%dy:%dx:%dright:%ddown:%dleft:%dup:%d", msg->a, msg->b, msg->y, msg->x, msg->right, msg->down, msg->left, msg->up);
             }
             if(msg->g)_pub_canusb->publish(*msg_emergency);
             if(robotcontrol_flag)_pub_base_control->publish(*msg_base_control);
@@ -382,17 +390,27 @@ namespace controller_interface
 
         void SmartphoneGamepad::callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg)
         {
-
+            status_num_ER = msg->data;
         }
 
         void SmartphoneGamepad::callback_state_num_RR(const std_msgs::msg::String::SharedPtr msg)
         {
-            
+            status_num_RR = msg->data;
         }
 
-        void SmartphoneGamepad::callback_scrn_pole(const std_msgs::msg::String::SharedPtr msg)
+        void SmartphoneGamepad::callback_pole(const scontroller_interface_msg::msg::Pole::SharedPtr msg)
         {
- 
+            a = msg->a;
+            b = msg->b;
+            c = msg->c;
+            d = msg->d;
+            e = msg->e;
+            f = msg->f;
+            g = msg->g;
+            h = msg->h;
+            i = msg->i;
+            j = msg->j;
+            k = msg->k;
         }
 
         void SmartphoneGamepad::callback_move_injection_heteronomy()

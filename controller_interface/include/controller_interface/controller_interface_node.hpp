@@ -15,6 +15,7 @@
 //他のpkg
 #include "utilities/can_utils.hpp"
 #include "utilities/utils.hpp"
+#include "socket_udp.hpp"
 #include "trapezoidal_velocity_planner.hpp"
 #include "my_visibility.h"
 //UDP
@@ -50,6 +51,7 @@ namespace controller_interface
             rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_state_num_RR;
             //ER_subのcontrollerから
             rclcpp::Subscription<controller_interface_msg::msg::Pad>::SharedPtr _sub_pad_sub;
+            rclcpp::Subscription<controller_interface_msg::msg::Pole>::SharedPtr _sub_pole;
 
             //mainボードから
             rclcpp::Subscription<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _sub_main_injection_possible;
@@ -88,7 +90,7 @@ namespace controller_interface
             void callback_state_num_RR(const std_msgs::msg::String::SharedPtr msg);
             
             void callback_pad_sub(const controller_interface_msg::msg::Pad::SharedPtr msg);
-            void callback_scrn_pole(const std_msgs::msg::String::SharedPtr msg);
+            void callback_pole(const controller_interface_msg::msg::Pole::SharedPtr msg);
 
             //mainからのcallback
             void callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg);
@@ -118,6 +120,18 @@ namespace controller_interface
             bool is_injection0_convergence;
             bool is_injection1_convergence;
 
+            bool a;
+            bool b;
+            bool c;
+            bool d;
+            bool e;
+            bool f;
+            bool g;
+            bool h;
+            bool i;
+            bool j;
+            bool k;
+
             //初期化指定用
             const float manual_linear_max_vel;
             const float manual_angular_max_vel;
@@ -132,6 +146,9 @@ namespace controller_interface
             const int udp_port_pole_rr;
             const int udp_timeout_ms;
 
+            std::string status_num_ER;
+            std::string status_num_RR;
+
             //計画機
             VelPlanner velPlanner_linear_x;
             VelPlanner velPlanner_linear_y;
@@ -142,6 +159,8 @@ namespace controller_interface
 
             VelPlanner velPlanner_injection_v;
             const VelPlannerLimit limit_injection;
+
+            RecvUDP socket_robot_state;
 
             udp udp_commu;
     };

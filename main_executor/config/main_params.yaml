@@ -48,6 +48,7 @@ controller_interface_node:
     injection_max_dec: 40.0
 
     heartbeat_ms: 100 #ハートビート周期[ms]
+    convergence_ms: 100 #収束周期[ms]
 
     move_injection_heteronomy_ms: 17 #上物と足回り手動の周期[ms]
 
@@ -57,6 +58,13 @@ controller_interface_node:
     udp_port_sub: 51000 #subのUDPのポート番号
     udp_port_pole_er: 53000 #er実行機からpole情報を送るUDPのポート番号
     udp_port_pole_rr: 54000 #rr実行機からpole情報を受け取るUDPのポート番号
+    udp_port_basecontrol_er: 55000 #rr実行機からpole情報を受け取るUDPのポート番号
+    udp_port_convergence_er: 56000 #rr実行機からpole情報を受け取るUDPのポート番号
+    udp_port_state_num_er: 57000 #rr実行機からpole情報を受け取るUDPのポート番号
+    udp_port_basecontrol_rr: 58000 #rr実行機からpole情報を受け取るUDPのポート番号
+    udp_port_convergence_rr: 59000 #rr実行機からpole情報を受け取るUDPのポート番号
+    udp_port_state_num_rr: 60000 #rr実行機からpole情報を受け取るUDPのポート番号
+    udp_port_pole: 61000 #rr実行機からpole情報を受け取るUDPのポート番号
     
     #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角
     defalt_restart_flag: false

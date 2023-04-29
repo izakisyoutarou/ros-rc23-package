@@ -29,6 +29,8 @@
 #include <cstring>//memcpyのため
 
 #include "udp.hpp"
+#include "send_udp.hpp"
+#include "super_command.hpp"
 
 namespace controller_interface
 {
@@ -79,6 +81,7 @@ namespace controller_interface
 
             //timer
             rclcpp::TimerBase::SharedPtr _pub_heartbeat;
+            rclcpp::TimerBase::SharedPtr _pub_timer_convergence;
             rclcpp::TimerBase::SharedPtr _move_injection_heteronomy;
 
             //QoS
@@ -120,18 +123,6 @@ namespace controller_interface
             bool is_injection0_convergence;
             bool is_injection1_convergence;
 
-            bool a;
-            bool b;
-            bool c;
-            bool d;
-            bool e;
-            bool f;
-            bool g;
-            bool h;
-            bool i;
-            bool j;
-            bool k;
-
             //初期化指定用
             const float manual_linear_max_vel;
             const float manual_angular_max_vel;
@@ -142,12 +133,20 @@ namespace controller_interface
             const bool defalt_injection_autonomous_flag;
             const bool defalt_emergency_flag;
             const bool defalt_injection_mec;
+
+            //udp初期化用
             const int udp_port_pole_er;
             const int udp_port_pole_rr;
-            const int udp_timeout_ms;
+            const int udp_port_basecontrol_er;
+            const int udp_port_convergence_er;
+            const int udp_port_state_num_er;
+            const int udp_port_basecontrol_rr;
+            const int udp_port_convergence_rr;
+            const int udp_port_state_num_rr;
+            const int udp_port_pole;
 
-            std::string status_num_ER;
-            std::string status_num_RR;
+            // std::string status_num_ER;
+            // std::string status_num_RR;
 
             //計画機
             VelPlanner velPlanner_linear_x;
@@ -160,8 +159,8 @@ namespace controller_interface
             VelPlanner velPlanner_injection_v;
             const VelPlannerLimit limit_injection;
 
-            RecvUDP socket_robot_state;
-
             udp udp_commu;
+            send_udp send;
+            super_command command;
     };
 }

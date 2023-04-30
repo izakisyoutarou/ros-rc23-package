@@ -7,7 +7,7 @@
 #define BUFSIZE 1024
 #define ER_IP "192.168.1.4"
 
-udp::udp(int udp_port_main, int udp_port_sub, int udp_port_er)
+udp::udp(int udp_port_main, int udp_port_sub/*, int udp_port_er*/)
 {
     //UDP
     sockfd_main = socket(AF_INET, SOCK_DGRAM, 0);
@@ -26,13 +26,13 @@ udp::udp(int udp_port_main, int udp_port_sub, int udp_port_er)
     bind(sockfd_sub, (struct sockaddr *) &servaddr_sub, sizeof(servaddr_sub));
     udp_thread_sub = std::thread(&udp::callback_udp_sub, this, sockfd_sub);
 
-    sockfd_er_pole = socket(AF_INET, SOCK_DGRAM, 0);
-    memset(&servaddr_er_pole, 0, sizeof(servaddr_er_pole));
-    servaddr_er_pole.sin_family = AF_INET;
-    servaddr_er_pole.sin_addr.s_addr = htonl(INADDR_ANY);
-    servaddr_er_pole.sin_port = htons(udp_port_er);
-    bind(sockfd_er_pole, (struct sockaddr *) &servaddr_er_pole, sizeof(servaddr_er_pole));
-    udp_thread_er_pole = std::thread(&udp::callback_udp_er_pole, this, sockfd_er_pole);
+    // sockfd_er_pole = socket(AF_INET, SOCK_DGRAM, 0);
+    // memset(&servaddr_er_pole, 0, sizeof(servaddr_er_pole));
+    // servaddr_er_pole.sin_family = AF_INET;
+    // servaddr_er_pole.sin_addr.s_addr = htonl(INADDR_ANY);
+    // servaddr_er_pole.sin_port = htons(udp_port_er);
+    // bind(sockfd_er_pole, (struct sockaddr *) &servaddr_er_pole, sizeof(servaddr_er_pole));
+    // udp_thread_er_pole = std::thread(&udp::callback_udp_er_pole, this, sockfd_er_pole);
 }
 
 void udp::callback_udp_main(int sockfd)

@@ -40,11 +40,7 @@ namespace controller_interface
         defalt_injection_mec(get_parameter("defalt_injection_mec").as_int()),
         udp_port_pole_er(get_parameter("udp_port_pole_er").as_int()),
         udp_port_pole_rr(get_parameter("udp_port_pole_rr").as_int()),
-        udp_port_basecontrol_er(get_parameter("udp_port_basecontrol_er").as_int()),
-        udp_port_convergence_er(get_parameter("udp_port_convergence_er").as_int()),
         udp_port_state_num_er(get_parameter("udp_port_state_num_er").as_int()),
-        udp_port_basecontrol_rr(get_parameter("udp_port_basecontrol_rr").as_int()),
-        udp_port_convergence_rr(get_parameter("udp_port_convergence_rr").as_int()),
         udp_port_state_num_rr(get_parameter("udp_port_state_num_rr").as_int()),
         udp_port_pole(get_parameter("udp_port_pole").as_int())
         {
@@ -120,11 +116,11 @@ namespace controller_interface
             _pub_canusb = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx", _qos);
 
             //controllerへpub
-            _pub_convergence = this->create_publisher<controller_interface_msg::msg::Convergence>("convergence" , _qos);
+            _pub_convergence = this->create_publisher<controller_interface_msg::msg::Convergence>("pub_convergence" , _qos);
             _pub_scrn_string = this->create_publisher<std_msgs::msg::String>("scrn_pole", _qos);
 
             //各nodeへリスタートと手自動の切り替えをpub。
-            _pub_base_control = this->create_publisher<controller_interface_msg::msg::BaseControl>("base_control",_qos);
+            _pub_base_control = this->create_publisher<controller_interface_msg::msg::BaseControl>("pub_base_control",_qos);
 
             //gazebo用のpub
             _pub_gazebo = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", _qos);
@@ -171,16 +167,6 @@ namespace controller_interface
                     msg_convergence->injection0 = is_injection0_convergence;
                     msg_convergence->injection1 = is_injection1_convergence;
                     _pub_convergence->publish(*msg_convergence);
-
-                    char convergence[5];
-                    const char* data;
-                    convergence[0] = is_spline_convergence;
-                    convergence[1] = is_injection_calculator0_convergence;
-                    convergence[2] = is_injection_calculator1_convergence;
-                    convergence[3] = is_injection0_convergence;
-                    convergence[4] = is_injection1_convergence;
-                    data = convergence;
-                    send.send(data, strlen(data), IP_ER_PC, udp_port_convergence_er);
                 }
             );
 
@@ -212,9 +198,6 @@ namespace controller_interface
             msg_btn->candlc = 8;
 
             uint8_t _candata_btn[8];
-
-            char base_control[5];
-            const char* data;
 
             bool robotcontrol_flag = false;//base_control(手自動、緊急、リスタート)が押されたらpubする
             bool flag_restart = false;//resertがtureをpubした後にfalseをpubする
@@ -258,14 +241,6 @@ namespace controller_interface
             msg_base_control->is_injection_autonomous = is_injection_autonomous;
             msg_base_control->injection_mec = injection_mec;
 
-            //erのシーケンサへbase_controlを送る
-            base_control[0] = is_reset;
-            base_control[1] = is_emergency;
-            base_control[2] = is_move_autonomous;
-            base_control[3] = is_injection_autonomous;
-            base_control[4] = injection_mec;
-            data = base_control;
-
             //mainへ緊急を送る代入
             _candata_btn[0] = is_emergency;
             for(int i=0; i<msg_emergency->candlc; i++) msg_emergency->candata[i] = _candata_btn[i];
@@ -288,8 +263,7 @@ namespace controller_interface
             if(msg->g)_pub_canusb->publish(*msg_emergency);
             if(robotcontrol_flag)
             {
-                _pub_base_control->publish(*msg_base_control);
-                send.send(data, strlen(data), IP_ER_PC, udp_port_basecontrol_er);              
+                _pub_base_control->publish(*msg_base_control);            
             }
             if(msg->s)
             {
@@ -323,9 +297,6 @@ namespace controller_interface
             auto msg_scrn_pole_restart = std::make_shared<std_msgs::msg::String>(); 
 
             uint8_t _candata_btn[8];
-
-            char base_control[5];
-            const char* data;
 
             bool robotcontrol_flag = false;//base_control(手自動、緊急、リスタート)が押されたらpubする
             bool flag_restart = false;//resertがtureをpubした後にfalseをpubする
@@ -399,14 +370,6 @@ namespace controller_interface
             msg_base_control->is_injection_autonomous = is_injection_autonomous;
             msg_base_control->injection_mec = injection_mec;
 
-            //erのシーケンサへbase_controlを送る
-            base_control[0] = is_reset;
-            base_control[1] = is_emergency;
-            base_control[2] = is_move_autonomous;
-            base_control[3] = is_injection_autonomous;
-            base_control[4] = injection_mec;
-            data = base_control;
-
             //mainへ緊急を送る代入
             _candata_btn[0] = is_emergency;
             for(int i=0; i<msg_emergency->candlc; i++) msg_emergency->candata[i] = _candata_btn[i];
@@ -436,7 +399,6 @@ namespace controller_interface
             if(robotcontrol_flag)
             {
                 _pub_base_control->publish(*msg_base_control);
-                send.send(data, strlen(data), IP_ER_PC, udp_port_basecontrol_er);
             }
             if(msg->s) _pub_scrn_string->publish(*msg_scrn_pole_restart);
             if(flag_restart)
@@ -449,13 +411,13 @@ namespace controller_interface
         void SmartphoneGamepad::callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg)
         {
             const char* data = msg->data.c_str();
-            command.state_num(data,IP_ER_PC,udp_port_state_num_er);
+            command.state_num_ER(data, udp_port_state_num_er);
         }
 
         void SmartphoneGamepad::callback_state_num_RR(const std_msgs::msg::String::SharedPtr msg)
         {
             const char* data = msg->data.c_str();
-            command.state_num(data,IP_RR_PC,udp_port_state_num_rr);
+            command.state_num_RR(data, udp_port_state_num_rr);
         }
 
         void SmartphoneGamepad::callback_pole(const controller_interface_msg::msg::Pole::SharedPtr msg)
@@ -473,8 +435,8 @@ namespace controller_interface
             pole[9] = static_cast<char>(msg->j);
             pole[10] = static_cast<char>(msg->k);
             const char* data = pole;
-            command.pole(data,IP_ER_PC,udp_port_pole);
-            command.pole(data,IP_RR_PC,udp_port_pole);
+            command.pole_ER(data, udp_port_pole);
+            command.pole_RR(data, udp_port_pole);
         }
 
         void SmartphoneGamepad::callback_move_injection_heteronomy()

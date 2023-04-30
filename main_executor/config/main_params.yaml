@@ -2,7 +2,7 @@ launch: #起動パラメータ
   ros__parameters:
     slcan: false
     scan: false
-    tcp_endpoint: false
+    tcp_endpoint: true
     trajectory_planner: true
 
 /**:  #ワイルドカード(ここのパラメータは全ノードから読める: <名前に注意>)
@@ -29,8 +29,8 @@ launch: #起動パラメータ
       sub_digital_button: 0x221
 
     port:
-      robot_state: 50000
-      pole_state: 51000
+      robot_state: 57000
+      pole_state: 61000
 
 controller_interface_node:
   ros__parameters:
@@ -58,13 +58,9 @@ controller_interface_node:
     udp_port_sub: 51000 #subのUDPのポート番号
     udp_port_pole_er: 53000 #er実行機からpole情報を送るUDPのポート番号
     udp_port_pole_rr: 54000 #rr実行機からpole情報を受け取るUDPのポート番号
-    udp_port_basecontrol_er: 55000 #rr実行機からpole情報を受け取るUDPのポート番号
-    udp_port_convergence_er: 56000 #rr実行機からpole情報を受け取るUDPのポート番号
-    udp_port_state_num_er: 57000 #rr実行機からpole情報を受け取るUDPのポート番号
-    udp_port_basecontrol_rr: 58000 #rr実行機からpole情報を受け取るUDPのポート番号
-    udp_port_convergence_rr: 59000 #rr実行機からpole情報を受け取るUDPのポート番号
-    udp_port_state_num_rr: 60000 #rr実行機からpole情報を受け取るUDPのポート番号
-    udp_port_pole: 61000 #rr実行機からpole情報を受け取るUDPのポート番号
+    udp_port_state_num_er: 57000 #
+    udp_port_state_num_rr: 60000 #
+    udp_port_pole: 61000 #
     
     #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角
     defalt_restart_flag: false

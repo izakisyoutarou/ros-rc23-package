@@ -137,11 +137,7 @@ namespace controller_interface
             //udp初期化用
             const int udp_port_pole_er;
             const int udp_port_pole_rr;
-            const int udp_port_basecontrol_er;
-            const int udp_port_convergence_er;
             const int udp_port_state_num_er;
-            const int udp_port_basecontrol_rr;
-            const int udp_port_convergence_rr;
             const int udp_port_state_num_rr;
             const int udp_port_pole;
 

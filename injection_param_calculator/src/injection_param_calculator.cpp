@@ -39,15 +39,15 @@ namespace injection_param_calculator{
                 _qos,
                 std::bind(&InjectionParamCalculator::callback_sub_pad,this,std::placeholders::_1)
             );
-            _sub_base_control = this->create_subscription<controller_interface_msg::msg::BaseControl>(
-                "pub_base_control",
-                _qos,
-                std::bind(&InjectionParamCalculator::callback_base_control,this,std::placeholders::_1)
-            );
+            // _sub_base_control = this->create_subscription<controller_interface_msg::msg::BaseControl>(
+            //     "pub_base_control",
+            //     _qos,
+            //     std::bind(&InjectionParamCalculator::callback_base_control,this,std::placeholders::_1)
+            // );
 
             _pub_can = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx",_qos);
             _pub_isConvergenced = this->create_publisher<std_msgs::msg::Bool>("is_calculator_convergenced_"+to_string(mech_num),_qos);
-            RCLCPP_INFO(this->get_logger(),"create injection_"+to_string(mech_num));
+            RCLCPP_INFO(this->get_logger(),"create injection_ER");
         }
     void InjectionParamCalculator::callback_injection(const injection_interface_msg::msg::InjectionCommand::SharedPtr msg){
         auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
@@ -59,7 +59,7 @@ namespace injection_param_calculator{
         injection_comand.height = msg->height;
         RCLCPP_INFO(get_logger(),"distance: %lf",injection_comand.distance);
         RCLCPP_INFO(get_logger(),"height: %lf",injection_comand.height);
-        RCLCPP_INFO(get_logger(),"direction: %lf",injection_comand.direction);
+        RCLCPP_INFO(get_logger(),"direction(deg): %lf",rtod(injection_comand.direction));
 
         // calculateElevation();
         isConvergenced = calculateVelocity();
@@ -107,32 +107,32 @@ namespace injection_param_calculator{
             _pub_can->publish(*msg_injection);
         }
     }
-    void InjectionParamCalculator::callback_base_control(const controller_interface_msg::msg::BaseControl::SharedPtr msg){
-        auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-        auto msg_yaw = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-        if(msg->is_restart){
-            // elevation = dtor(injection_angle);
-            velocity = 0.0;
-            direction = 0.0;
-            msg_injection->canid = 0x210 + 2*mech_num;
-            // msg_injection->candlc = 8;
-            msg_injection->candlc = 4;
-            //送信
-            // uint8_t _candata[8];
-            uint8_t _candata[4];
-            // float_to_bytes(_candata, static_cast<float>(elevation));
-            // float_to_bytes(_candata+4, static_cast<float>(velocity));
-            float_to_bytes(_candata, static_cast<float>(velocity));
-            for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
+    // void InjectionParamCalculator::callback_base_control(const controller_interface_msg::msg::BaseControl::SharedPtr msg){
+    //     auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
+    //     auto msg_yaw = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
+    //     if(msg->is_restart){
+    //         // elevation = dtor(injection_angle);
+    //         velocity = 0.0;
+    //         direction = 0.0;
+    //         msg_injection->canid = 0x210 + 2*mech_num;
+    //         // msg_injection->candlc = 8;
+    //         msg_injection->candlc = 4;
+    //         //送信
+    //         // uint8_t _candata[8];
+    //         uint8_t _candata[4];
+    //         // float_to_bytes(_candata, static_cast<float>(elevation));
+    //         // float_to_bytes(_candata+4, static_cast<float>(velocity));
+    //         float_to_bytes(_candata, static_cast<float>(velocity));
+    //         for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
             
-            msg_yaw ->canid = 0x210 + 2*mech_num + 1;
-            msg_yaw ->candlc = 4;
-            float_to_bytes(_candata, static_cast<float>(direction));
-            for(int i=0; i<msg_yaw->candlc; i++) msg_yaw->candata[i] = _candata[i];
-            _pub_can->publish(*msg_injection);
-            _pub_can->publish(*msg_yaw);
-        }
-    }
+    //         msg_yaw ->canid = 0x210 + 2*mech_num + 1;
+    //         msg_yaw ->candlc = 4;
+    //         float_to_bytes(_candata, static_cast<float>(direction));
+    //         for(int i=0; i<msg_yaw->candlc; i++) msg_yaw->candata[i] = _candata[i];
+    //         _pub_can->publish(*msg_injection);
+    //         _pub_can->publish(*msg_yaw);
+    //     }
+    // }
     // std::string InjectionParamCalculator::int_to_string(int mech_num){
     //     std::string side;
     //     switch (mech_num)

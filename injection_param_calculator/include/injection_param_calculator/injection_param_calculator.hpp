@@ -2,7 +2,7 @@
 #include <std_msgs/msg/bool.hpp>
 #include "socketcan_interface_msg/msg/socketcan_if.hpp"
 #include "controller_interface_msg/msg/convergence.hpp"
-#include "controller_interface_msg/msg/base_control.hpp"
+// #include "controller_interface_msg/msg/base_control.hpp"
 #include "controller_interface_msg/msg/sub_pad.hpp"
 #include "injection_interface_msg/msg/injection_command.hpp"
 #include "injection_param_calculator/my_visibility.h"
@@ -22,7 +22,7 @@ namespace injection_param_calculator{
 
             rclcpp::Subscription<controller_interface_msg::msg::Convergence>::SharedPtr _sub_is_convergence;
             rclcpp::Subscription<controller_interface_msg::msg::SubPad>::SharedPtr _sub_pad;
-            rclcpp::Subscription<controller_interface_msg::msg::BaseControl>::SharedPtr _sub_base_control;
+            // rclcpp::Subscription<controller_interface_msg::msg::BaseControl>::SharedPtr _sub_base_control;
 
             rclcpp::Publisher<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _pub_can;
             rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr _pub_isConvergenced;
@@ -30,7 +30,7 @@ namespace injection_param_calculator{
             void callback_injection(const injection_interface_msg::msg::InjectionCommand::SharedPtr msg);
             void callback_is_convergence(const controller_interface_msg::msg::Convergence::SharedPtr msg);
             void callback_sub_pad(const controller_interface_msg::msg::SubPad::SharedPtr msg);
-            void callback_base_control(const controller_interface_msg::msg::BaseControl::SharedPtr msg);
+            // void callback_base_control(const controller_interface_msg::msg::BaseControl::SharedPtr msg);
 
             // double f(double v0);
             // double diff(double v0);

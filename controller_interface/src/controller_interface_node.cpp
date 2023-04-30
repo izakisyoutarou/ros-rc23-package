@@ -437,6 +437,7 @@ namespace controller_interface
             const char* data = pole;
             command.pole_ER(data, udp_port_pole);
             command.pole_RR(data, udp_port_pole);
+            send.send(data, strlen(data), IP_RR_PC, udp_port_pole_rr);
         }
 
         void SmartphoneGamepad::callback_move_injection_heteronomy()

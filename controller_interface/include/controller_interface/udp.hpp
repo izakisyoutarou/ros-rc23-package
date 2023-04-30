@@ -12,10 +12,11 @@
 class udp
 {
     public:
-        udp(int udp_port_main, int udp_port_sub);
+        udp(int udp_port_main, int udp_port_sub/*, int udp_port_er*/);
         
         void callback_udp_main(int sockfd);
         void callback_udp_sub(int sockfd);
+        void callback_udp_er_pole(int sockfd);
 
         float analog_l_x_main(){return l_x_main;}
         float analog_l_y_main(){return l_y_main;}
@@ -50,4 +51,11 @@ class udp
         char* buffer_sub = new char[16];
         struct sockaddr_in servaddr_sub, cliaddr_sub;
         std::thread udp_thread_sub;
+
+        int sockfd_er_pole, er_pole;
+        socklen_t clilen_er_pole;
+        char* buffer_er_pole = new char[11];
+        struct sockaddr_in servaddr_er_pole, cliaddr_er_pole;
+        std::thread udp_thread_er_pole;
+        
 };

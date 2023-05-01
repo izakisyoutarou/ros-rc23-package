@@ -71,7 +71,7 @@ namespace controller_interface
 
             //controllerへ
             rclcpp::Publisher<controller_interface_msg::msg::Convergence>::SharedPtr _pub_convergence;
-            rclcpp::Publisher<std_msgs::msg::String>::SharedPtr _pub_scrn_string;
+            rclcpp::Publisher<controller_interface_msg::msg::Pole>::SharedPtr _pub_scrn_pole;
 
             //各nodeへリスタートと手自動の切り替えをpub
             rclcpp::Publisher<controller_interface_msg::msg::BaseControl>::SharedPtr _pub_base_control;
@@ -140,9 +140,6 @@ namespace controller_interface
             const int udp_port_state_num_er;
             const int udp_port_state_num_rr;
             const int udp_port_pole;
-
-            // std::string status_num_ER;
-            // std::string status_num_RR;
 
             //計画機
             VelPlanner velPlanner_linear_x;

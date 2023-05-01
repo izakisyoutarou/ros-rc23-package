@@ -90,7 +90,7 @@ namespace injection_param_calculator{
     }
     void InjectionParamCalculator::callback_sub_pad(const controller_interface_msg::msg::Pad::SharedPtr msg){
         auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-        if(msg->x){
+        if(msg->r1){
             elevation = dtor(angle_choice);
             velocity = 0.0;
             msg_injection->canid = 0x210 + 2*mech_num;

@@ -11,7 +11,7 @@
 
 send_udp::send_udp(){}
 
-void send_udp::send(const char* data, int data_len, const char* dest_ip, int dest_port)
+void send_udp::send(const unsigned char* data, int data_len, const char* dest_ip, int dest_port)
 {
     int sockfd;
     struct sockaddr_in servaddr;

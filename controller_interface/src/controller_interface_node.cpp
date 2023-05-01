@@ -117,7 +117,7 @@ namespace controller_interface
 
             //controllerへpub
             _pub_convergence = this->create_publisher<controller_interface_msg::msg::Convergence>("pub_convergence" , _qos);
-            _pub_scrn_string = this->create_publisher<std_msgs::msg::String>("scrn_pole", _qos);
+            _pub_scrn_pole = this->create_publisher<controller_interface_msg::msg::Pole>("scrn_pole", _qos);
 
             //各nodeへリスタートと手自動の切り替えをpub。
             _pub_base_control = this->create_publisher<controller_interface_msg::msg::BaseControl>("pub_base_control",_qos);
@@ -291,10 +291,10 @@ namespace controller_interface
             msg_injection->candlc = 2;
 
             auto msg_btn = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_btn->canid = 0x2200;
+            msg_btn->canid = 0x220;
             msg_btn->candlc = 8;
 
-            auto msg_scrn_pole_restart = std::make_shared<std_msgs::msg::String>(); 
+            auto msg_scrn_pole_restart = std::make_shared<controller_interface_msg::msg::Pole>(); 
 
             uint8_t _candata_btn[8];
 
@@ -335,7 +335,17 @@ namespace controller_interface
             //sはリスタート。緊急と手自動のboolをfalseにしてリセットしている。
             if(msg->s)
             {
-                msg_scrn_pole_restart->data = "restart";
+                msg_scrn_pole_restart->a = false;
+                msg_scrn_pole_restart->b = false;
+                msg_scrn_pole_restart->c = false;
+                msg_scrn_pole_restart->d = false;
+                msg_scrn_pole_restart->e = false;
+                msg_scrn_pole_restart->f = false;
+                msg_scrn_pole_restart->g = false;
+                msg_scrn_pole_restart->h = false;
+                msg_scrn_pole_restart->i = false;
+                msg_scrn_pole_restart->j = false;
+                msg_scrn_pole_restart->k = false;
             }
 
             //l2が左、r2が右の発射機構のトリガー。
@@ -400,7 +410,7 @@ namespace controller_interface
             {
                 _pub_base_control->publish(*msg_base_control);
             }
-            if(msg->s) _pub_scrn_string->publish(*msg_scrn_pole_restart);
+            if(msg->s) _pub_scrn_pole->publish(*msg_scrn_pole_restart);
             if(flag_restart)
             {
                 msg_base_control->is_restart = false;
@@ -410,19 +420,20 @@ namespace controller_interface
 
         void SmartphoneGamepad::callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg)
         {
-            const char* data = msg->data.c_str();
+            const unsigned char data[2] = {msg->data[0], msg->data[1]};
             command.state_num_ER(data, udp_port_state_num_er);
         }
 
         void SmartphoneGamepad::callback_state_num_RR(const std_msgs::msg::String::SharedPtr msg)
         {
-            const char* data = msg->data.c_str();
+            const unsigned char data[2] = {msg->data[0], msg->data[1]};
             command.state_num_RR(data, udp_port_state_num_rr);
         }
 
         void SmartphoneGamepad::callback_pole(const controller_interface_msg::msg::Pole::SharedPtr msg)
         {
-            char pole[11];
+            auto msg_scrn_pole = std::make_shared<controller_interface_msg::msg::Pole>(); 
+            unsigned char pole[11];
             pole[0] = static_cast<char>(msg->a);
             pole[1] = static_cast<char>(msg->b);
             pole[2] = static_cast<char>(msg->c);
@@ -434,10 +445,25 @@ namespace controller_interface
             pole[8] = static_cast<char>(msg->i);
             pole[9] = static_cast<char>(msg->j);
             pole[10] = static_cast<char>(msg->k);
-            const char* data = pole;
-            command.pole_ER(data, udp_port_pole);
-            command.pole_RR(data, udp_port_pole);
-            send.send(data, strlen(data), IP_RR_PC, udp_port_pole_rr);
+            RCLCPP_INFO(this->get_logger(), "pole %d %d %d %d %d %d %d %d %d %d %d ", pole[0],pole[1],pole[2],pole[3],pole[4],pole[5],pole[6],pole[7],pole[8],pole[9],pole[10]);
+
+            msg_scrn_pole->a = msg->a;
+            msg_scrn_pole->b = msg->b;
+            msg_scrn_pole->c = msg->c;
+            msg_scrn_pole->d = msg->d;
+            msg_scrn_pole->e = msg->e;
+            msg_scrn_pole->f = msg->f;
+            msg_scrn_pole->g = msg->g;
+            msg_scrn_pole->h = msg->h;
+            msg_scrn_pole->i = msg->i;
+            msg_scrn_pole->j = msg->j;
+            msg_scrn_pole->k = msg->k;
+
+            command.pole_ER(pole, udp_port_pole);
+            command.pole_RR(pole, udp_port_pole);
+            //send.send(data, strlen(data), IP_RR_PC, udp_port_pole_rr);
+
+            _pub_scrn_pole->publish(*msg_scrn_pole);
         }
 
         void SmartphoneGamepad::callback_move_injection_heteronomy()

@@ -38,8 +38,7 @@ namespace controller_interface
         defalt_move_autonomous_flag(get_parameter("defalt_move_autonomous_flag").as_bool()),
         defalt_injection_autonomous_flag(get_parameter("defalt_injection_autonomous_flag").as_bool()),
         defalt_injection_mec(get_parameter("defalt_injection_mec").as_int()),
-        udp_port_pole_er(get_parameter("udp_port_pole_er").as_int()),
-        udp_port_pole_rr(get_parameter("udp_port_pole_rr").as_int()),
+        udp_port_pole_execution(get_parameter("udp_port_pole_execution").as_int()),
         udp_port_state_num_er(get_parameter("udp_port_state_num_er").as_int()),
         udp_port_state_num_rr(get_parameter("udp_port_state_num_rr").as_int()),
         udp_port_pole(get_parameter("udp_port_pole").as_int())
@@ -194,7 +193,7 @@ namespace controller_interface
             msg_emergency->candlc = 1;
 
             auto msg_btn = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_btn->canid = 0x300;
+            msg_btn->canid = 0x220;
             msg_btn->candlc = 8;
 
             uint8_t _candata_btn[8];
@@ -291,7 +290,7 @@ namespace controller_interface
             msg_injection->candlc = 2;
 
             auto msg_btn = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_btn->canid = 0x220;
+            msg_btn->canid = 0x221;
             msg_btn->candlc = 8;
 
             auto msg_scrn_pole_restart = std::make_shared<controller_interface_msg::msg::Pole>(); 
@@ -421,6 +420,9 @@ namespace controller_interface
         void SmartphoneGamepad::callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg)
         {
             const unsigned char data[2] = {msg->data[0], msg->data[1]};
+
+            if(data[0] == "O") initial_state = data[0];
+
             command.state_num_ER(data, udp_port_state_num_er);
         }
 
@@ -445,7 +447,6 @@ namespace controller_interface
             pole[8] = static_cast<char>(msg->i);
             pole[9] = static_cast<char>(msg->j);
             pole[10] = static_cast<char>(msg->k);
-            RCLCPP_INFO(this->get_logger(), "pole %d %d %d %d %d %d %d %d %d %d %d ", pole[0],pole[1],pole[2],pole[3],pole[4],pole[5],pole[6],pole[7],pole[8],pole[9],pole[10]);
 
             msg_scrn_pole->a = msg->a;
             msg_scrn_pole->b = msg->b;
@@ -461,7 +462,7 @@ namespace controller_interface
 
             command.pole_ER(pole, udp_port_pole);
             command.pole_RR(pole, udp_port_pole);
-            //send.send(data, strlen(data), IP_RR_PC, udp_port_pole_rr);
+            send.send(pole, sizeof(pole), IP_RR_PC, udp_port_pole_execution);
 
             _pub_scrn_pole->publish(*msg_scrn_pole);
         }
@@ -511,8 +512,8 @@ namespace controller_interface
             if(is_move_autonomous == false)
             {
                 velPlanner_linear_x.vel(static_cast<double>(analog_l_y_main));//unityとロボットにおける。xとyが違うので逆にしている。
-                velPlanner_linear_y.vel(static_cast<double>(analog_l_x_main));
-                velPlanner_angular_z.vel(static_cast<double>(analog_r_x_main));
+                velPlanner_linear_y.vel(static_cast<double>(-analog_l_x_main));
+                velPlanner_angular_z.vel(static_cast<double>(-analog_r_x_main));
 
                 velPlanner_linear_x.cycle();
                 velPlanner_linear_y.cycle();
@@ -537,7 +538,7 @@ namespace controller_interface
             }
             if(is_injection_autonomous == false)
             {
-                velPlanner_injection_v.vel(static_cast<double>(analog_l_x_sub));
+                velPlanner_injection_v.vel(static_cast<double>(-analog_l_x_sub));
 
                 velPlanner_injection_v.cycle();
 

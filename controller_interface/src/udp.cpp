@@ -7,7 +7,7 @@
 #define BUFSIZE 1024
 #define ER_IP "192.168.1.4"
 
-udp::udp(int udp_port_main, int udp_port_sub/*, int udp_port_er*/)
+udp::udp(int udp_port_main, int udp_port_sub, int udp_port_pole_execution)
 {
     //UDP
     sockfd_main = socket(AF_INET, SOCK_DGRAM, 0);
@@ -26,13 +26,13 @@ udp::udp(int udp_port_main, int udp_port_sub/*, int udp_port_er*/)
     bind(sockfd_sub, (struct sockaddr *) &servaddr_sub, sizeof(servaddr_sub));
     udp_thread_sub = std::thread(&udp::callback_udp_sub, this, sockfd_sub);
 
-    // sockfd_er_pole = socket(AF_INET, SOCK_DGRAM, 0);
-    // memset(&servaddr_er_pole, 0, sizeof(servaddr_er_pole));
-    // servaddr_er_pole.sin_family = AF_INET;
-    // servaddr_er_pole.sin_addr.s_addr = htonl(INADDR_ANY);
-    // servaddr_er_pole.sin_port = htons(udp_port_er);
-    // bind(sockfd_er_pole, (struct sockaddr *) &servaddr_er_pole, sizeof(servaddr_er_pole));
-    // udp_thread_er_pole = std::thread(&udp::callback_udp_er_pole, this, sockfd_er_pole);
+    sockfd_pole_execution = socket(AF_INET, SOCK_DGRAM, 0);
+    memset(&servaddr_pole_execution, 0, sizeof(servaddr_pole_execution));
+    servaddr_pole_execution.sin_family = AF_INET;
+    servaddr_pole_execution.sin_addr.s_addr = htonl(INADDR_ANY);
+    servaddr_pole_execution.sin_port = htons(udp_port_pole_execution);
+    bind(sockfd_pole_execution, (struct sockaddr *) &servaddr_pole_execution, sizeof(servaddr_pole_execution));
+    udp_thread_pole_execution = std::thread(&udp::callback_udp_pole_execution, this, sockfd_pole_execution);
 }
 
 void udp::callback_udp_main(int sockfd)
@@ -94,7 +94,7 @@ void udp::callback_udp_sub(int sockfd)
 
     while(rclcpp::ok())
     {
-        clilen_sub = sizeof(cliaddr_sub);
+        clilen_pole_execution = sizeof(cliaddr_pole_execution);
 
         // ノンブロッキングモードでrecvfromを呼び出す
         fd_set read_fds;
@@ -113,7 +113,7 @@ void udp::callback_udp_sub(int sockfd)
         }
 
         // bufferに受信したデータが格納されている
-        sub = recvfrom(sockfd, buffers[cur_buf], BUFSIZE, 0, (struct sockaddr *) &cliaddr_sub, &clilen_sub);
+        sub = recvfrom(sockfd, buffers[cur_buf], BUFSIZE, 0, (struct sockaddr *) &cliaddr_pole_execution, &clilen_pole_execution);
 
         if (sub < 0)
         {
@@ -144,7 +144,7 @@ void udp::callback_udp_sub(int sockfd)
 
 //     while(rclcpp::ok())
 //     {
-//         clilen_sub = sizeof(cliaddr_sub);
+//         clilen_pole_execution = sizeof(cliaddr_pole_execution);
 
 //         // ノンブロッキングモードでrecvfromを呼び出す
 //         fd_set read_fds;
@@ -163,9 +163,9 @@ void udp::callback_udp_sub(int sockfd)
 //         }
 
 //         // bufferに受信したデータが格納されている
-//         sub = recvfrom(sockfd, buffers[cur_buf], BUFSIZE, 0, (struct sockaddr *) &cliaddr_sub, &clilen_sub);
+//         pole_execution = recvfrom(sockfd, buffers, BUFSIZE, 0, (struct sockaddr *) &cliaddr_pole_execution, &clilen_pole_execution);
 
-//         if (sub < 0)
+//         if (pole_execution < 0)
 //         {
 //             perror("recvfrom");
 //             continue;
@@ -177,10 +177,6 @@ void udp::callback_udp_sub(int sockfd)
 //             continue;
 //         }               
 
-//         std::memcpy(&l_x_sub, &buffers[cur_buf][0], sizeof(l_x_sub));
-//         std::memcpy(&l_y_sub, &buffers[cur_buf][4], sizeof(l_y_sub));
-//         std::memcpy(&r_x_sub, &buffers[cur_buf][8], sizeof(r_x_sub));
-//         std::memcpy(&r_y_sub, &buffers[cur_buf][12], sizeof(r_y_sub));   
-//         cur_buf = (cur_buf + 1) % BUFFER_NUM;
+//         std::memcpy(data, buffer, data_len);
 //     }
 // }

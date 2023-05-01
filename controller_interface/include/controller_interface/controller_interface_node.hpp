@@ -115,6 +115,7 @@ namespace controller_interface
             bool is_move_autonomous = false;
             bool is_injection_autonomous = false;
             int injection_mec = 0;
+            string initial_state = "";
 
             //convergence用
             bool is_spline_convergence;
@@ -135,8 +136,7 @@ namespace controller_interface
             const bool defalt_injection_mec;
 
             //udp初期化用
-            const int udp_port_pole_er;
-            const int udp_port_pole_rr;
+            const int udp_port_pole_execution;
             const int udp_port_state_num_er;
             const int udp_port_state_num_rr;
             const int udp_port_pole;

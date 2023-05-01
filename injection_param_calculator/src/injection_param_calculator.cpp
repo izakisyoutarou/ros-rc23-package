@@ -9,19 +9,10 @@ namespace injection_param_calculator{
     InjectionParamCalculator::InjectionParamCalculator(const std::string &name_space, const rclcpp::NodeOptions &options, const int mech_num)
         :rclcpp::Node("injection_param_calculator_node" ,name_space,options),
         mech_num(mech_num),
-        // ring_weight(get_parameter("ring_weight").as_double()),
         gravitational_accelerastion(get_parameter("gravitational_accelerastion").as_double()),
-        // air_resistance_coefficient(get_parameter("air_resistance_coefficient").as_double()),
-        // injection_length(get_parameter("injection_length").as_double()),
         foundation_hight(get_parameter("foundation_hight").as_double()),
-        // calculat_first_velocity(get_parameter("calculat_first_velocity").as_double()),
-        // calculate_first_velocity_low(get_parameter("calculate_first_velocity_low").as_double()),
         velocity_lim_max(get_parameter("velocity_lim_max").as_double()),
         injection_angle(get_parameter("injection_angle").as_double()),
-        // angle_choice(get_parameter("angle_choice").as_double()),
-        // angle_bounds(get_parameter("angle_bounds").as_double()),
-        // max_loop(get_parameter("max_loop").as_int()),
-        // pitch_limit(get_parameter("pitch_limit").as_double_array()),
         yow_limit(get_parameter("yow_limit_m"+to_string(mech_num)).as_double_array())
         {
             _sub_injection_command = this->create_subscription<injection_interface_msg::msg::InjectionCommand>(
@@ -39,11 +30,6 @@ namespace injection_param_calculator{
                 _qos,
                 std::bind(&InjectionParamCalculator::callback_sub_pad,this,std::placeholders::_1)
             );
-            // _sub_base_control = this->create_subscription<controller_interface_msg::msg::BaseControl>(
-            //     "pub_base_control",
-            //     _qos,
-            //     std::bind(&InjectionParamCalculator::callback_base_control,this,std::placeholders::_1)
-            // );
 
             _pub_can = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx",_qos);
             _pub_isConvergenced = this->create_publisher<std_msgs::msg::Bool>("is_calculator_convergenced_"+to_string(mech_num),_qos);
@@ -61,25 +47,17 @@ namespace injection_param_calculator{
         RCLCPP_INFO(get_logger(),"height: %lf",injection_comand.height);
         RCLCPP_INFO(get_logger(),"direction(deg): %lf",rtod(injection_comand.direction));
 
-        // calculateElevation();
         isConvergenced = calculateVelocity();
         msg_isConvergenced->data = isConvergenced;
-        // RCLCPP_INFO(this->get_logger(),"mech_num: %d velocity: %lf[m/s] elevation: %lf[rad]",mech_num,velocity, elevation);
         RCLCPP_INFO(this->get_logger(),"mech_num: %d velocity: %lf[m/s]",mech_num,velocity);
         RCLCPP_INFO(this->get_logger(),"mech_num: %d direction: %lf[rad]",mech_num,injection_comand.direction);
 
-        // msg_injection->canid = 0x210 + 2*mech_num;
-        // msg_injection->candlc = 8;
         msg_injection->canid = 0x210 + 2*mech_num;
         msg_injection->candlc = 4;
 
         //送信
-        // uint8_t _candata[8];
         uint8_t _candata[4];
-        // float_to_bytes(_candata, static_cast<float>(elevation));
-        // float_to_bytes(_candata+4, static_cast<float>(velocity));
         float_to_bytes(_candata, static_cast<float>(velocity));
-        // float_to_bytes(_candata+4, static_cast<float>(velocity));
         for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
 
         msg_yaw->canid = 0x210 + 2*mech_num + 1;
@@ -95,69 +73,21 @@ namespace injection_param_calculator{
     void InjectionParamCalculator::callback_sub_pad(const controller_interface_msg::msg::SubPad::SharedPtr msg){
         auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
         if(msg->x){
-            elevation = dtor(injection_angle);
             velocity = 0.0;
             msg_injection->canid = 0x210 + 2*mech_num;
-            msg_injection->candlc = 8;
+            msg_injection->candlc = 4;
             //送信
-            uint8_t _candata[8];
-            float_to_bytes(_candata, static_cast<float>(elevation));
-            float_to_bytes(_candata+4, static_cast<float>(velocity));
+            uint8_t _candata[4];
+            float_to_bytes(_candata, static_cast<float>(velocity));
             for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
             _pub_can->publish(*msg_injection);
         }
     }
-    // void InjectionParamCalculator::callback_base_control(const controller_interface_msg::msg::BaseControl::SharedPtr msg){
-    //     auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-    //     auto msg_yaw = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-    //     if(msg->is_restart){
-    //         // elevation = dtor(injection_angle);
-    //         velocity = 0.0;
-    //         direction = 0.0;
-    //         msg_injection->canid = 0x210 + 2*mech_num;
-    //         // msg_injection->candlc = 8;
-    //         msg_injection->candlc = 4;
-    //         //送信
-    //         // uint8_t _candata[8];
-    //         uint8_t _candata[4];
-    //         // float_to_bytes(_candata, static_cast<float>(elevation));
-    //         // float_to_bytes(_candata+4, static_cast<float>(velocity));
-    //         float_to_bytes(_candata, static_cast<float>(velocity));
-    //         for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
-            
-    //         msg_yaw ->canid = 0x210 + 2*mech_num + 1;
-    //         msg_yaw ->candlc = 4;
-    //         float_to_bytes(_candata, static_cast<float>(direction));
-    //         for(int i=0; i<msg_yaw->candlc; i++) msg_yaw->candata[i] = _candata[i];
-    //         _pub_can->publish(*msg_injection);
-    //         _pub_can->publish(*msg_yaw);
-    //     }
-    // }
-    // std::string InjectionParamCalculator::int_to_string(int mech_num){
-    //     std::string side;
-    //     switch (mech_num)
-    //     {
-    //     case 0:
-    //         side = "left";
-    //         break;
-        
-    //     case 1:
-    //         side = "right";
-    //     }
-    //     return side;
-    // }
-    // void InjectionParamCalculator::calculateElevation(){
-    //     double pitch = atan2(injection_comand.height,injection_comand.distance);
-    //     if(dtor(angle_bounds) > pitch){
-    //         elevation = dtor(angle_choice);
-    //     }
-    //     else{
-    //         elevation = dtor(pitch_limit[1]);
-    //     }
-    // }
+
     void InjectionParamCalculator::callback_is_convergence(const controller_interface_msg::msg::Convergence::SharedPtr msg){
         is_convergence = msg->spline_convergence;
     }
+    
     bool InjectionParamCalculator::calculateVelocity(){
         bool isConvergence = false;
         double g = gravitational_accelerastion;
@@ -187,68 +117,6 @@ namespace injection_param_calculator{
         else{
             isConvergence = true;
         }
-        return isConvergence;
-
-        // int num_loop = 0;
-        // double old_velocity = calculat_first_velocity;
-        // if(elevation == dtor(pitch_limit[1])){
-        //     old_velocity = calculate_first_velocity_low;
-        // }
-        // else{
-        //     old_velocity = calculat_first_velocity;
-        // }
-        // bool isConvergenced = false;
-        // //auto isConvergenced = std::make_shared<std_msgs::msg::Bool>();
-        // bool isAiming = false;
-        // while(!isAiming){
-        //     if(!(dtor(yow_limit[0]) <= injection_comand.direction && injection_comand.direction <= dtor(yow_limit[1]))){
-        //         //isConvergenced->data = false;
-        //         isConvergenced = false;
-        //         RCLCPP_INFO(this->get_logger(),"mech_num: %d 範囲外です!!",mech_num,injection_comand.direction);
-        //         velocity = 0.0;
-        //         break;
-        //     }
-        //     double new_velocity = old_velocity -f(old_velocity)/diff(old_velocity);
-        //     if(abs(new_velocity-old_velocity)<eps && 0 < new_velocity && new_velocity < velocity_lim_max){
-        //         isAiming = true;
-        //         //isConvergenced->data = true;
-        //         isConvergenced=true;
-        //         velocity = new_velocity;
-        //     }
-        //     old_velocity = new_velocity;
-        //     num_loop++;
-            
-        //     if(num_loop>max_loop){
-        //         isAiming=false;
-        //         //isConvergenced->data = false;
-        //         isConvergenced=false;
-        //         velocity = 0.0;
-        //         RCLCPP_INFO(this->get_logger(),"mech_num: %d 発散しました",mech_num);
-        //         break;
-        //     }
-        // }
-        // //RCLCPP_INFO(this->get_logger(),"velocity: %lf",velocity);
-        // //_pub_isConvergenced->publish(*isConvergenced);
-        // //RCLCPP_INFO(this->get_logger(),"isConvergned: %d",isConvergenced);
-        // return isConvergenced;
+        return isConvergence;   
     }
-    // double InjectionParamCalculator::f(double v0){
-    //     double c_sin = sin(elevation);
-    //     double c_cos = cos(elevation);
-    //     double c_tan = tan(elevation);
-    //     double m = ring_weight;
-    //     double g = gravitational_accelerastion;
-    //     // double k = air_resistance_coefficient;
-    //     // double l = injection_length;
-    //     double y0 = foundation_hight;
-    //     // double x = injection_comand.distance - l*c_cos;
-    //     double x = injection_comand.distance;
-    //     // double y = injection_comand.height -(y0 + l*c_sin);
-    //     double y = injection_comand.height;
-    //     // return x*c_tan + m*g*x/(k*v0*c_cos) + m*m*g/(k*k)*log(abs(1-k*x/(m*v0*c_cos))) - y;
-    //     return x*c_tan -g*x*x/(2*v0*v0*c_cos*c_cos) + y0 - y;
-    // }
-    // double InjectionParamCalculator::diff(double v0){
-    //     return (f(v0 + eps) - f(v0 - eps))/(2*eps);
-    // }
 }

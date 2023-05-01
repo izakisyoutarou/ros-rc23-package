@@ -445,7 +445,7 @@ namespace controller_interface
             pole[8] = static_cast<char>(msg->i);
             pole[9] = static_cast<char>(msg->j);
             pole[10] = static_cast<char>(msg->k);
-            RCLCPP_INFO(this->get_logger(), "pole %d %d %d %d %d %d %d %d %d %d %d ", pole[0],pole[1],pole[2],pole[3],pole[4],pole[5],pole[6],pole[7],pole[8],pole[9],pole[10]);
+            //RCLCPP_INFO(this->get_logger(), "pole %d %d %d %d %d %d %d %d %d %d %d ", pole[0],pole[1],pole[2],pole[3],pole[4],pole[5],pole[6],pole[7],pole[8],pole[9],pole[10]);
 
             msg_scrn_pole->a = msg->a;
             msg_scrn_pole->b = msg->b;
@@ -511,8 +511,8 @@ namespace controller_interface
             if(is_move_autonomous == false)
             {
                 velPlanner_linear_x.vel(static_cast<double>(analog_l_y_main));//unityとロボットにおける。xとyが違うので逆にしている。
-                velPlanner_linear_y.vel(static_cast<double>(analog_l_x_main));
-                velPlanner_angular_z.vel(static_cast<double>(analog_r_x_main));
+                velPlanner_linear_y.vel(-static_cast<double>(analog_l_x_main));
+                velPlanner_angular_z.vel(-static_cast<double>(analog_r_x_main));
 
                 velPlanner_linear_x.cycle();
                 velPlanner_linear_y.cycle();
@@ -531,7 +531,7 @@ namespace controller_interface
                 msg_gazebo->linear.x = velPlanner_linear_x.vel();
                 msg_gazebo->linear.y = velPlanner_linear_y.vel();
                 msg_gazebo->angular.z = velPlanner_angular_z.vel();
-                _pub_gazebo->publish(*msg_gazebo);
+                //_pub_gazebo->publish(*msg_gazebo);
 
                 flag_move_autonomous = true;
             }

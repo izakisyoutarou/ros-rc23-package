@@ -28,7 +28,6 @@
 #include <arpa/inet.h>
 #include <cstring>//memcpyのため
 
-#include "udp.hpp"
 #include "send_udp.hpp"
 #include "super_command.hpp"
 
@@ -51,6 +50,7 @@ namespace controller_interface
             rclcpp::Subscription<controller_interface_msg::msg::Pad>::SharedPtr _sub_pad_main;
             rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_state_num_ER;
             rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_state_num_RR;
+            rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_initial_state;
             //ER_subのcontrollerから
             rclcpp::Subscription<controller_interface_msg::msg::Pad>::SharedPtr _sub_pad_sub;
             rclcpp::Subscription<controller_interface_msg::msg::Pole>::SharedPtr _sub_pole;
@@ -82,7 +82,7 @@ namespace controller_interface
             //timer
             rclcpp::TimerBase::SharedPtr _pub_heartbeat;
             rclcpp::TimerBase::SharedPtr _pub_timer_convergence;
-            rclcpp::TimerBase::SharedPtr _move_injection_heteronomy;
+            rclcpp::TimerBase::SharedPtr _socket_timer;
 
             //QoS
             rclcpp::QoS _qos = rclcpp::QoS(10);
@@ -91,6 +91,7 @@ namespace controller_interface
             void callback_pad_main(const controller_interface_msg::msg::Pad::SharedPtr msg);
             void callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg);
             void callback_state_num_RR(const std_msgs::msg::String::SharedPtr msg);
+            void callback_initial_state(const std_msgs::msg::String::SharedPtr msg);
             
             void callback_pad_sub(const controller_interface_msg::msg::Pad::SharedPtr msg);
             void callback_pole(const controller_interface_msg::msg::Pole::SharedPtr msg);
@@ -106,8 +107,10 @@ namespace controller_interface
             void callback_injection_calculator_0(const std_msgs::msg::Bool::SharedPtr msg);
             void callback_injection_calculator_1(const std_msgs::msg::Bool::SharedPtr msg);
 
-            //上物と足回り手動のtimerによる周期関数
-            void callback_move_injection_heteronomy();
+            void _recv_callback();
+
+            void _recv_joy_main(const unsigned char data[16]);
+            void _recv_joy_sub(const unsigned char data[16]);
             
             //base_control用
             bool is_reset = false;
@@ -115,6 +118,7 @@ namespace controller_interface
             bool is_move_autonomous = false;
             bool is_injection_autonomous = false;
             int injection_mec = 0;
+            std::string initial_state = "";
 
             //convergence用
             bool is_spline_convergence;
@@ -135,8 +139,7 @@ namespace controller_interface
             const bool defalt_injection_mec;
 
             //udp初期化用
-            const int udp_port_pole_er;
-            const int udp_port_pole_rr;
+            const int udp_port_pole_execution;
             const int udp_port_state_num_er;
             const int udp_port_state_num_rr;
             const int udp_port_pole;
@@ -152,8 +155,10 @@ namespace controller_interface
             VelPlanner velPlanner_injection_v;
             const VelPlannerLimit limit_injection;
 
-            udp udp_commu;
             send_udp send;
             super_command command;
+
+            RecvUDP joy_main;
+            RecvUDP joy_sub;
     };
 }

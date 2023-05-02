@@ -1,7 +1,7 @@
 #include "controller_interface/super_command.hpp"
 #include <rclcpp/rclcpp.hpp>
 
-#define IP_ER_PC "192.168.1.11"
+#define IP_ER_PC "192.168.1.2"
 #define IP_RR_PC "192.168.1.3"
 
 super_command::super_command(){}

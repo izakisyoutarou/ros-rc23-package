@@ -161,6 +161,5 @@ namespace controller_interface
 
             RecvUDP joy_main;
             RecvUDP joy_sub;
-            RecvUDP pole;
     };
 }

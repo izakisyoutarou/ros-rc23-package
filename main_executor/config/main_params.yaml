@@ -38,8 +38,8 @@ controller_interface_node:
   ros__parameters:
     # 手動の並進　速度[m/s],加速度[m/s^2],加減速度[-m/s^2]
     linear_max_vel: 2.0
-    linear_max_acc: 1.0
-    linear_max_dec: 1.0
+    linear_max_acc: 6.0
+    linear_max_dec: 6.0
     # 手動の回転  速度[deg/s],加速度[deg/s^2],加減速度[-deg/s^2]
     angular_max_vel: 45.0
     angular_max_acc: 180.0

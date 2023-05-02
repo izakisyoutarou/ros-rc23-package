@@ -26,9 +26,8 @@ namespace controller_interface
         dtor(get_parameter("injection_max_vel").as_double()),
         dtor(get_parameter("injection_max_acc").as_double()),
         dtor(get_parameter("injection_max_dec").as_double()) ),
-        udp_commu(
-        get_parameter("udp_port_main").as_int(),
-        get_parameter("udp_port_sub").as_int()),
+        joy_main(get_parameter("port.joy_main").as_int()),
+        joy_sub(get_parameter("udp_port_sub").as_int()),
         defalt_pitch(static_cast<float>(get_parameter("defalt_pitch").as_double())),
         manual_linear_max_vel(static_cast<float>(get_parameter("linear_max_vel").as_double())),
         manual_angular_max_vel(dtor(static_cast<float>(get_parameter("angular_max_vel").as_double()))),
@@ -44,7 +43,6 @@ namespace controller_interface
         udp_port_pole(get_parameter("udp_port_pole").as_int())
         {
             const auto heartbeat_ms = this->get_parameter("heartbeat_ms").as_int();
-            const auto move_injection_heteronomy_ms = this->get_parameter("move_injection_heteronomy_ms").as_int();
             const auto convergence_ms = this->get_parameter("convergence_ms").as_int();
 
             //controller_mainからsub
@@ -64,6 +62,12 @@ namespace controller_interface
                 "state_num_RR",
                 _qos,
                 std::bind(&SmartphoneGamepad::callback_state_num_RR, this, std::placeholders::_1)
+            );
+
+            _sub_initial_state = this->create_subscription<std_msgs::msg::String>(
+                "initial_state",
+                _qos,
+                std::bind(&SmartphoneGamepad::callback_initial_state, this, std::placeholders::_1)
             );
 
             _sub_pad_sub = this->create_subscription<controller_interface_msg::msg::Pad>(
@@ -169,10 +173,9 @@ namespace controller_interface
                 }
             );
 
-            //上物と足回り手動周期(60hz)
-            _move_injection_heteronomy = this->create_wall_timer(
-                std::chrono::milliseconds(move_injection_heteronomy_ms),
-                std::bind(&SmartphoneGamepad::callback_move_injection_heteronomy, this) 
+            _socket_timer = this->create_wall_timer(
+                std::chrono::milliseconds(this->get_parameter("interval_ms").as_int()),
+                [this] { _recv_callback(); }
             );
 
             //計画機
@@ -239,6 +242,7 @@ namespace controller_interface
             msg_base_control->is_move_autonomous = is_move_autonomous;
             msg_base_control->is_injection_autonomous = is_injection_autonomous;
             msg_base_control->injection_mec = injection_mec;
+            msg_base_control->initial_state = initial_state;
 
             //mainへ緊急を送る代入
             _candata_btn[0] = is_emergency;
@@ -417,12 +421,28 @@ namespace controller_interface
             }
         }
 
+        void SmartphoneGamepad::callback_initial_state(const std_msgs::msg::String::SharedPtr msg)
+        {
+            initial_state = msg->data[0];
+        }
+
+        void SmartphoneGamepad::_recv_callback()
+        {
+            if(joy_main.is_recved())
+            {
+                unsigned char data[16];
+                _recv_joy_main(joy_main.data(data, sizeof(data)));
+            }
+            if(joy_sub.is_recved())
+            {
+                unsigned char data[16];
+                _recv_joy_sub(joy_sub.data(data, sizeof(data)));
+            }
+        }
+
         void SmartphoneGamepad::callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg)
         {
             const unsigned char data[2] = {msg->data[0], msg->data[1]};
-
-            if(data[0] == "O") initial_state = data[0];
-
             command.state_num_ER(data, udp_port_state_num_er);
         }
 
@@ -467,8 +487,11 @@ namespace controller_interface
             _pub_scrn_pole->publish(*msg_scrn_pole);
         }
 
-        void SmartphoneGamepad::callback_move_injection_heteronomy()
+        void SmartphoneGamepad::_recv_joy_main(const unsigned char data[16])
         {
+            float values[4];
+            memcpy(values, data, sizeof(float)*4);
+
             auto msg_linear = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
             msg_linear->canid = 0x100;
             msg_linear->candlc = 8;
@@ -477,43 +500,17 @@ namespace controller_interface
             msg_angular->canid = 0x101;
             msg_angular->candlc = 4;
 
-            auto msg_l_elevation_velocity = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_l_elevation_velocity->canid = 0x210;
-            msg_l_elevation_velocity->candlc = 8;
-
-            auto msg_l_yaw = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_l_yaw->canid = 0x211;
-            msg_l_yaw->candlc = 4;
-
-            auto msg_r_elevation_velocity = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_r_elevation_velocity->canid = 0x212;
-            msg_r_elevation_velocity->candlc = 8;
-
-            auto msg_r_yaw = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_r_yaw->canid = 0x213;
-            msg_r_yaw->candlc = 4;
-
             auto msg_gazebo = std::make_shared<geometry_msgs::msg::Twist>();
+
+            bool flag_move_autonomous = false;
 
             uint8_t _candata_joy[8];
 
-            bool flag_move_autonomous = false;
-            bool flag_injection_autonomous = false;
-
-            float analog_l_x_main = udp_commu.analog_l_x_main();
-            float analog_l_y_main = udp_commu.analog_l_y_main();
-            float analog_r_x_main = udp_commu.analog_r_x_main();
-
-            float analog_l_x_sub = udp_commu.analog_l_x_sub();
-            float analog_l_y_sub = udp_commu.analog_l_y_sub();
-            float analog_r_x_sub = udp_commu.analog_r_x_sub();
-            float analog_r_y_sub = udp_commu.analog_r_y_sub();
-
             if(is_move_autonomous == false)
             {
-                velPlanner_linear_x.vel(static_cast<double>(analog_l_y_main));//unityとロボットにおける。xとyが違うので逆にしている。
-                velPlanner_linear_y.vel(static_cast<double>(-analog_l_x_main));
-                velPlanner_angular_z.vel(static_cast<double>(-analog_r_x_main));
+                velPlanner_linear_x.vel(static_cast<double>(values[1]));//unityとロボットにおける。xとyが違うので逆にしている。
+                velPlanner_linear_y.vel(static_cast<double>(-values[0]));
+                velPlanner_angular_z.vel(static_cast<double>(-values[2]));
 
                 velPlanner_linear_x.cycle();
                 velPlanner_linear_y.cycle();
@@ -536,9 +533,36 @@ namespace controller_interface
 
                 flag_move_autonomous = true;
             }
+        }
+
+        void SmartphoneGamepad::_recv_joy_sub(const unsigned char data[16])
+        {
+            float values[4];
+            memcpy(values, data, sizeof(float)*4);
+
+            auto msg_l_elevation_velocity = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
+            msg_l_elevation_velocity->canid = 0x210;
+            msg_l_elevation_velocity->candlc = 8;
+
+            auto msg_l_yaw = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
+            msg_l_yaw->canid = 0x211;
+            msg_l_yaw->candlc = 4;
+
+            auto msg_r_elevation_velocity = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
+            msg_r_elevation_velocity->canid = 0x212;
+            msg_r_elevation_velocity->candlc = 8;
+
+            auto msg_r_yaw = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
+            msg_r_yaw->canid = 0x213;
+            msg_r_yaw->candlc = 4;
+
+            bool flag_injection_autonomous = false;
+
+            uint8_t _candata_joy[8];
+
             if(is_injection_autonomous == false)
             {
-                velPlanner_injection_v.vel(static_cast<double>(-analog_l_x_sub));
+                velPlanner_injection_v.vel(static_cast<double>(-values[0]));
 
                 velPlanner_injection_v.cycle();
 
@@ -548,7 +572,7 @@ namespace controller_interface
                     float_to_bytes(_candata_joy+4, static_cast<float>(velPlanner_injection_v.vel()) * manual_injection_max_vel);
                     for(int i=0; i<msg_l_elevation_velocity->candlc; i++) msg_l_elevation_velocity->candata[i] = _candata_joy[i];
 
-                    float_to_bytes(_candata_joy, static_cast<float>(atan2(-analog_r_x_sub, analog_r_y_sub)));
+                    float_to_bytes(_candata_joy, static_cast<float>(atan2(-values[2], values[3])));
                     for(int i=0; i<msg_l_yaw->candlc; i++) msg_l_yaw->candata[i] = _candata_joy[i];
 
                     _pub_canusb->publish(*msg_l_elevation_velocity);
@@ -560,38 +584,13 @@ namespace controller_interface
                     float_to_bytes(_candata_joy+4, static_cast<float>(velPlanner_injection_v.vel()) * manual_injection_max_vel);
                     for(int i=0; i<msg_r_elevation_velocity->candlc; i++) msg_r_elevation_velocity->candata[i] = _candata_joy[i];
 
-                    float_to_bytes(_candata_joy, static_cast<float>(atan2(-analog_r_x_sub, analog_r_y_sub)));
+                    float_to_bytes(_candata_joy, static_cast<float>(atan2(-values[2], values[3])));
                     for(int i=0; i<msg_r_yaw->candlc; i++) msg_r_yaw->candata[i] = _candata_joy[i];
 
                     _pub_canusb->publish(*msg_r_elevation_velocity);
                     _pub_canusb->publish(*msg_r_yaw);
                 }
                 flag_injection_autonomous = true;
-            }
-            if(is_move_autonomous == true || is_injection_autonomous == true) 
-            {
-                if(flag_move_autonomous == true)
-                {
-                    float_to_bytes(_candata_joy, 0);
-                    for(int i=0; i<msg_linear->candlc; i++) msg_linear->candata[i] = _candata_joy[i];
-                    for(int i=0; i<msg_angular->candlc; i++) msg_angular->candata[i] = _candata_joy[i];
-
-                    _pub_canusb->publish(*msg_linear);
-                    _pub_canusb->publish(*msg_angular);
-                }
-                if(flag_injection_autonomous == true)
-                {
-                    float_to_bytes(_candata_joy, 0);
-                    for(int i=0; i<msg_l_elevation_velocity->candlc; i++) msg_l_elevation_velocity->candata[i] = _candata_joy[i];
-                    for(int i=0; i<msg_l_yaw->candlc; i++) msg_l_yaw->candata[i] = _candata_joy[i];
-                    for(int i=0; i<msg_r_elevation_velocity->candlc; i++) msg_r_elevation_velocity->candata[i] = _candata_joy[i];
-                    for(int i=0; i<msg_r_yaw->candlc; i++) msg_r_yaw->candata[i] = _candata_joy[i];
-
-                    _pub_canusb->publish(*msg_l_elevation_velocity);
-                    _pub_canusb->publish(*msg_l_yaw);
-                    _pub_canusb->publish(*msg_r_elevation_velocity);
-                    _pub_canusb->publish(*msg_r_yaw);
-                }
             }
         }
 
@@ -605,7 +604,7 @@ namespace controller_interface
         void SmartphoneGamepad::callback_spline(const std_msgs::msg::Bool::SharedPtr msg)
         {
             //spline_pidから足回り収束のsub。足回りの収束状況。
-            is_spline_convergence = msg->data;
+            if(!msg->data) is_spline_convergence = true;
         }
 
         void SmartphoneGamepad::callback_injection_calculator_0(const std_msgs::msg::Bool::SharedPtr msg)

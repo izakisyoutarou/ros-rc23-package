@@ -27,7 +27,6 @@ find_package(controller_interface_msg REQUIRED)
 
 add_library(controller_interface_node
   src/controller_interface_node.cpp
-  src/udp.cpp
   src/send_udp.cpp
   src/super_command.cpp
 )

@@ -5,7 +5,7 @@
 using namespace utils;
 
 #define IP_ER_PC "192.168.1.2"
-#define IP_RR_PC "192.168.1.3"
+#define IP_RR_PC "192.168.1.11"
 
 namespace controller_interface
 {

@@ -38,7 +38,6 @@ int main(int argc, char * argv[]){
     exec.add_node(injection_param_calclator_node0);
     exec.add_node(injection_param_calclator_node1);
 
-
     exec.spin();
     rclcpp::shutdown();
     return 0;

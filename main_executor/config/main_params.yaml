@@ -52,6 +52,8 @@ controller_interface_node:
     heartbeat_ms: 100 #ハートビート周期[ms]
     convergence_ms: 100 #収束周期[ms]
 
+    move_injection_heteronomy_ms: 17 #上物と足回り手動の周期[ms]
+
     udp_timeout_ms: 20 #UDPのタイムアウト値[ms]
 
     interval_ms: 50
@@ -72,7 +74,7 @@ controller_interface_node:
     defalt_injection_autonomous_flag: true
     defalt_injection_mec: 1
     defalt_pitch: 45.0
-    
+
 
 sequencer_node:
   ros__parameters:

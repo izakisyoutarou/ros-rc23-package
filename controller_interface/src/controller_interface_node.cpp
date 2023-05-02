@@ -194,7 +194,7 @@ namespace controller_interface
             msg_emergency->candlc = 1;
 
             auto msg_btn = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_btn->canid = 0x300;
+            msg_btn->canid = 0x220;
             msg_btn->candlc = 8;
 
             uint8_t _candata_btn[8];
@@ -569,15 +569,15 @@ namespace controller_interface
             }
             if(is_move_autonomous == true || is_injection_autonomous == true) 
             {
-                if(flag_move_autonomous == true)
-                {
-                    float_to_bytes(_candata_joy, 0);
-                    for(int i=0; i<msg_linear->candlc; i++) msg_linear->candata[i] = _candata_joy[i];
-                    for(int i=0; i<msg_angular->candlc; i++) msg_angular->candata[i] = _candata_joy[i];
+                // if(flag_move_autonomous == true)
+                // {
+                //     float_to_bytes(_candata_joy, 0);
+                //     for(int i=0; i<msg_linear->candlc; i++) msg_linear->candata[i] = _candata_joy[i];
+                //     for(int i=0; i<msg_angular->candlc; i++) msg_angular->candata[i] = _candata_joy[i];
 
-                    _pub_canusb->publish(*msg_linear);
-                    _pub_canusb->publish(*msg_angular);
-                }
+                //     _pub_canusb->publish(*msg_linear);
+                //     _pub_canusb->publish(*msg_angular);
+                // }
                 if(flag_injection_autonomous == true)
                 {
                     float_to_bytes(_candata_joy, 0);

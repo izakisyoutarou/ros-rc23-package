@@ -529,7 +529,7 @@ namespace controller_interface
                 msg_gazebo->linear.x = velPlanner_linear_x.vel();
                 msg_gazebo->linear.y = velPlanner_linear_y.vel();
                 msg_gazebo->angular.z = velPlanner_angular_z.vel();
-                _pub_gazebo->publish(*msg_gazebo);
+                //_pub_gazebo->publish(*msg_gazebo);
 
                 flag_move_autonomous = true;
             }

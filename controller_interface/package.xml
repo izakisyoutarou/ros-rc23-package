@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
-  <name>controller_interface_er</name>
+  <name>controller_interface</name>
   <version>0.0.0</version>
   <description>TODO: Package description</description>
   <maintainer email="c1103441@planet.kanazawa-it.ac.jp">ryoko</maintainer>
@@ -14,7 +14,7 @@
   <depend>std_msgs</depend>
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>socktcan_interface_msg</depend>
+  <depend>socketcan_interface_msg</depend>
   <depend>controller_interface_msg</depend>
 
   <test_depend>ament_lint_auto</test_depend>

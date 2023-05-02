@@ -7,11 +7,12 @@ endif()
 find_package(rclcpp REQUIRED)
 find_package(socketcan_interface REQUIRED)
 find_package(mcl_2d REQUIRED)
-find_package(controller_interface_er REQUIRED)
+find_package(controller_interface REQUIRED)
 find_package(spline_pid REQUIRED)
 find_package(injection_param_calculator REQUIRED)
 find_package(injection_interface REQUIRED)
 find_package(RANSAC_localization REQUIRED)
+find_package(sequencer REQUIRED)
 
 add_executable(main_exec
         src/main.cpp
@@ -21,11 +22,12 @@ ament_target_dependencies(main_exec
         rclcpp
         socketcan_interface
         mcl_2d
-        controller_interface_er
+        controller_interface
         spline_pid
         injection_param_calculator
         injection_interface
         RANSAC_localization
+        sequencer
         )
 
 target_include_directories(main_exec

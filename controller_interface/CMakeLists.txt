@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(controller_interface_er)
+project(controller_interface)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -25,17 +25,19 @@ find_package(sensor_msgs REQUIRED)
 find_package(socketcan_interface_msg REQUIRED)
 find_package(controller_interface_msg REQUIRED)
 
-add_library(controller_interface_er_node
-  src/controller_interface_er_node.cpp
+add_library(controller_interface_node
+  src/controller_interface_node.cpp
+  src/send_udp.cpp
+  src/super_command.cpp
 )
 
-target_compile_definitions(controller_interface_er_node
-  PRIVATE "CONTROLLER_INTERFACE_ER_LIBRARY"
+target_compile_definitions(controller_interface_node
+  PRIVATE "CONTROLLER_INTERFACE_LIBRARY"
 )
 
-target_compile_options(controller_interface_er_node PUBLIC -Wall)
+target_compile_options(controller_interface_node PUBLIC -Wall)
 
-ament_target_dependencies(controller_interface_er_node
+ament_target_dependencies(controller_interface_node
   rclcpp
   utilities
   std_msgs
@@ -45,7 +47,7 @@ ament_target_dependencies(controller_interface_er_node
   controller_interface_msg
 )
 
-target_include_directories(controller_interface_er_node
+target_include_directories(controller_interface_node
   PUBLIC
   $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
@@ -63,7 +65,7 @@ install(
 )
 
 install(
-  TARGETS controller_interface_er_node
+  TARGETS controller_interface_node
   EXPORT export_${PROJECT_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib

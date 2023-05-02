@@ -364,8 +364,6 @@ namespace controller_interface
                 if(is_spline_convergence && is_injection0_convergence && is_injection_calculator0_convergence)
                 {
                     flag_injection0 = true;
-                    is_injection0_convergence = false;
-                    is_injection_calculator0_convergence = false;
                 }
             }
 
@@ -374,8 +372,6 @@ namespace controller_interface
                 if(is_spline_convergence && is_injection1_convergence && is_injection_calculator1_convergence)
                 {
                     flag_injection1 = true;
-                    is_injection1_convergence = false;
-                    is_injection_calculator1_convergence = false;
                 }
             }
 

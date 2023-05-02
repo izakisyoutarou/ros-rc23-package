@@ -25,7 +25,7 @@ namespace injection_param_calculator{
                 _qos,
                 std::bind(&InjectionParamCalculator::callback_is_convergence,this,std::placeholders::_1)
             );
-            _sub_pad = this->create_subscription<controller_interface_msg::msg::SubPad>(
+            _sub_pad = this->create_subscription<controller_interface_msg::msg::Pad>(
                 "sub_pad_er_sub",
                 _qos,
                 std::bind(&InjectionParamCalculator::callback_sub_pad,this,std::placeholders::_1)
@@ -70,7 +70,7 @@ namespace injection_param_calculator{
             _pub_can->publish(*msg_yaw);
         }
     }
-    void InjectionParamCalculator::callback_sub_pad(const controller_interface_msg::msg::SubPad::SharedPtr msg){
+    void InjectionParamCalculator::callback_sub_pad(const controller_interface_msg::msg::Pad::SharedPtr msg){
         auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
         if(msg->x){
             velocity = 0.0;

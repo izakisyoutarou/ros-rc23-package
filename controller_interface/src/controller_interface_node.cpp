@@ -27,7 +27,7 @@ namespace controller_interface
         dtor(get_parameter("injection_max_acc").as_double()),
         dtor(get_parameter("injection_max_dec").as_double()) ),
         joy_main(get_parameter("port.joy_main").as_int()),
-        joy_sub(get_parameter("udp_port_sub").as_int()),
+        joy_sub(get_parameter("port.joy_sub").as_int()),
         defalt_pitch(static_cast<float>(get_parameter("defalt_pitch").as_double())),
         manual_linear_max_vel(static_cast<float>(get_parameter("linear_max_vel").as_double())),
         manual_angular_max_vel(dtor(static_cast<float>(get_parameter("angular_max_vel").as_double()))),

@@ -111,6 +111,7 @@ namespace controller_interface
 
             void _recv_joy_main(const unsigned char data[16]);
             void _recv_joy_sub(const unsigned char data[16]);
+            void _recv_pole(const unsigned char data[11]);
             
             //base_control用
             bool is_reset = false;

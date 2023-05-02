@@ -56,6 +56,8 @@ controller_interface_node:
 
     interval_ms: 50
 
+    pole_ms: 10
+
     #erのcontroller_interfaceのcontroller_itnerfaceにpole情報を送るUDPのポート番号。また、受け取る番号
     udp_port_pole_execution: 53000 
     

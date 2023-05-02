@@ -28,6 +28,7 @@ namespace controller_interface
         dtor(get_parameter("injection_max_dec").as_double()) ),
         joy_main(get_parameter("port.joy_main").as_int()),
         joy_sub(get_parameter("port.joy_sub").as_int()),
+        pole(get_parameter("udp_port_pole_execution").as_int()),
         defalt_pitch(static_cast<float>(get_parameter("defalt_pitch").as_double())),
         manual_linear_max_vel(static_cast<float>(get_parameter("linear_max_vel").as_double())),
         manual_angular_max_vel(dtor(static_cast<float>(get_parameter("angular_max_vel").as_double()))),
@@ -176,6 +177,11 @@ namespace controller_interface
             _socket_timer = this->create_wall_timer(
                 std::chrono::milliseconds(this->get_parameter("interval_ms").as_int()),
                 [this] { _recv_callback(); }
+            );
+
+            _pole_timer = this->create_wall_timer(
+                std::chrono::milliseconds(this->get_parameter("pole_ms").as_int()),
+                [this] { pole_integration(); }
             );
 
             //計画機
@@ -426,20 +432,6 @@ namespace controller_interface
             initial_state = msg->data[0];
         }
 
-        void SmartphoneGamepad::_recv_callback()
-        {
-            if(joy_main.is_recved())
-            {
-                unsigned char data[16];
-                _recv_joy_main(joy_main.data(data, sizeof(data)));
-            }
-            if(joy_sub.is_recved())
-            {
-                unsigned char data[16];
-                _recv_joy_sub(joy_sub.data(data, sizeof(data)));
-            }
-        }
-
         void SmartphoneGamepad::callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg)
         {
             const unsigned char data[2] = {msg->data[0], msg->data[1]};
@@ -454,37 +446,71 @@ namespace controller_interface
 
         void SmartphoneGamepad::callback_pole(const controller_interface_msg::msg::Pole::SharedPtr msg)
         {
+            pole_a[0] = msg->a;
+            pole_a[1] = msg->b;
+            pole_a[2] = msg->c;
+            pole_a[3] = msg->d;
+            pole_a[4] = msg->e;
+            pole_a[5] = msg->f;
+            pole_a[6] = msg->g;
+            pole_a[7] = msg->h;
+            pole_a[8] = msg->i;
+            pole_a[9] = msg->j;
+            pole_a[10] = msg->k;
+        }
+
+        void SmartphoneGamepad::pole_integration()
+        {
             auto msg_scrn_pole = std::make_shared<controller_interface_msg::msg::Pole>(); 
             unsigned char pole[11];
-            pole[0] = static_cast<char>(msg->a);
-            pole[1] = static_cast<char>(msg->b);
-            pole[2] = static_cast<char>(msg->c);
-            pole[3] = static_cast<char>(msg->d);
-            pole[4] = static_cast<char>(msg->e);
-            pole[5] = static_cast<char>(msg->f);
-            pole[6] = static_cast<char>(msg->g);
-            pole[7] = static_cast<char>(msg->h);
-            pole[8] = static_cast<char>(msg->i);
-            pole[9] = static_cast<char>(msg->j);
-            pole[10] = static_cast<char>(msg->k);
+            pole[0] = static_cast<char>(pole_a[0]);
+            pole[1] = static_cast<char>(pole_a[1]);
+            pole[2] = static_cast<char>(pole_a[2]);
+            pole[3] = static_cast<char>(pole_a[3]);
+            pole[4] = static_cast<char>(pole_a[4]);
+            pole[5] = static_cast<char>(pole_a[5]);
+            pole[6] = static_cast<char>(pole_a[6]);
+            pole[7] = static_cast<char>(pole_a[7]);
+            pole[8] = static_cast<char>(pole_a[8]);
+            pole[9] = static_cast<char>(pole_a[9]);
+            pole[10] = static_cast<char>(pole_a[10]);
 
-            msg_scrn_pole->a = msg->a;
-            msg_scrn_pole->b = msg->b;
-            msg_scrn_pole->c = msg->c;
-            msg_scrn_pole->d = msg->d;
-            msg_scrn_pole->e = msg->e;
-            msg_scrn_pole->f = msg->f;
-            msg_scrn_pole->g = msg->g;
-            msg_scrn_pole->h = msg->h;
-            msg_scrn_pole->i = msg->i;
-            msg_scrn_pole->j = msg->j;
-            msg_scrn_pole->k = msg->k;
+            msg_scrn_pole->a = pole_a[0];
+            msg_scrn_pole->b = pole_a[1];
+            msg_scrn_pole->c = pole_a[2];
+            msg_scrn_pole->d = pole_a[3];
+            msg_scrn_pole->e = pole_a[4];
+            msg_scrn_pole->f = pole_a[5];
+            msg_scrn_pole->g = pole_a[6];
+            msg_scrn_pole->h = pole_a[7];
+            msg_scrn_pole->i = pole_a[8];
+            msg_scrn_pole->j = pole_a[9];
+            msg_scrn_pole->k = pole_a[10];
 
             command.pole_ER(pole, udp_port_pole);
             command.pole_RR(pole, udp_port_pole);
             send.send(pole, sizeof(pole), IP_RR_PC, udp_port_pole_execution);
 
             _pub_scrn_pole->publish(*msg_scrn_pole);
+        }
+
+        void SmartphoneGamepad::_recv_callback()
+        {
+            if(joy_main.is_recved())
+            {
+                unsigned char data[16];
+                _recv_joy_main(joy_main.data(data, sizeof(data)));
+            }
+            if(joy_sub.is_recved())
+            {
+                unsigned char data[16];
+                _recv_joy_sub(joy_sub.data(data, sizeof(data)));
+            }
+            if(pole.is_recved())
+            {
+                unsigned char data[11];
+                _recv_pole(pole.data(data, sizeof(data)));
+            }
         }
 
         void SmartphoneGamepad::_recv_joy_main(const unsigned char data[16])
@@ -592,6 +618,21 @@ namespace controller_interface
                 }
                 flag_injection_autonomous = true;
             }
+        }
+
+        void SmartphoneGamepad::_recv_pole(const unsigned char data[11])
+        {
+            pole_a[0] = data[0];
+            pole_a[1] = data[1];
+            pole_a[2] = data[2];
+            pole_a[3] = data[3];
+            pole_a[4] = data[4];
+            pole_a[5] = data[5];
+            pole_a[6] = data[6];
+            pole_a[7] = data[7];
+            pole_a[8] = data[8];
+            pole_a[9] = data[9];
+            pole_a[10] = data[10];
         }
 
         void SmartphoneGamepad::callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg)

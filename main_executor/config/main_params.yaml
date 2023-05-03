@@ -1,7 +1,7 @@
 launch: #起動パラメータ
   ros__parameters:
     slcan: true
-    scan: false
+    scan: true
     tcp_endpoint: true
     trajectory_planner: true
 
@@ -141,5 +141,4 @@ RANSAC_localization:
     trial_num: 40
     inlier_dist_threshold: 0.01
     inlier_length_threshold: 1.3
-    initial_pose: [-5.45, 0.3, 0.0]  #初期位置[x,y,yaw]
     tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]

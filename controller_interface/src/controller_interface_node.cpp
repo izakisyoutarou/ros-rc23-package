@@ -255,6 +255,11 @@ namespace controller_interface
                 is_injection_autonomous = defalt_injection_autonomous_flag;
                 is_emergency = defalt_emergency_flag;
                 injection_mec = defalt_injection_mec;
+                is_spline_convergence = defalt_spline_convergence;
+                is_injection_calculator0_convergence = defalt_injection_calculator0_convergence;
+                is_injection_calculator1_convergence = defalt_injection_calculator1_convergence;
+                is_injection0_convergence = defalt_injection0_convergence;
+                is_injection1_convergence = defalt_injection1_convergence;
             }
 
             is_reset = msg->s;

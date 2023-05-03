@@ -142,6 +142,12 @@ namespace controller_interface
             const bool defalt_emergency_flag;
             const bool defalt_injection_mec;
 
+            const bool defalt_spline_convergence;
+            const bool defalt_injection_calculator0_convergence;
+            const bool defalt_injection_calculator1_convergence;
+            const bool defalt_injection0_convergence;
+            const bool defalt_injection1_convergence;
+
             //udp初期化用
             const int udp_port_pole_execution;
             const int udp_port_state_num_er;

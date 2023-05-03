@@ -75,6 +75,13 @@ controller_interface_node:
     defalt_injection_mec: 1
     defalt_pitch: 45.0
 
+    #収束の初期値
+    defalt_spline_convergence: false
+    defalt_injection_calculator0_convergence: false
+    defalt_injection_calculator1_convergence: false
+    defalt_injection0_convergence: false
+    defalt_injection1_convergence: false
+
 
 sequencer_node:
   ros__parameters:

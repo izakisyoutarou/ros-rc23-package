@@ -38,6 +38,13 @@ namespace controller_interface
         defalt_move_autonomous_flag(get_parameter("defalt_move_autonomous_flag").as_bool()),
         defalt_injection_autonomous_flag(get_parameter("defalt_injection_autonomous_flag").as_bool()),
         defalt_injection_mec(get_parameter("defalt_injection_mec").as_int()),
+
+        defalt_spline_convergence(get_parameter("defalt_spline_convergence").as_bool()),
+        defalt_injection_calculator0_convergence(get_parameter("defalt_injection_calculator0_convergence").as_bool()),
+        defalt_injection_calculator1_convergence(get_parameter("defalt_injection_calculator1_convergence").as_bool()),
+        defalt_injection0_convergence(get_parameter("defalt_injection0_convergence").as_bool()),
+        defalt_injection1_convergence(get_parameter("defalt_injection1_convergence").as_bool()),
+        
         udp_port_pole_execution(get_parameter("udp_port_pole_execution").as_int()),
         udp_port_state_num_er(get_parameter("udp_port_state_num_er").as_int()),
         udp_port_state_num_rr(get_parameter("udp_port_state_num_rr").as_int()),
@@ -136,11 +143,13 @@ namespace controller_interface
             msg_base_control->is_move_autonomous = defalt_move_autonomous_flag;
             msg_base_control->is_injection_autonomous = defalt_injection_autonomous_flag;
             msg_base_control->injection_mec = defalt_injection_mec;
+            msg_base_control->initial_state = "O";
             this->is_reset = defalt_restart_flag;
             this->is_emergency = defalt_emergency_flag;
             this->is_move_autonomous = defalt_move_autonomous_flag;
             this->is_injection_autonomous = defalt_injection_autonomous_flag;
             this->injection_mec = defalt_injection_mec;
+            this->initial_state = "O";
             _pub_base_control->publish(*msg_base_control);
 
             auto msg_emergency = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
@@ -148,6 +157,14 @@ namespace controller_interface
             msg_emergency->candlc = 1;
             msg_emergency->candata[0] = defalt_emergency_flag;
             _pub_canusb->publish(*msg_emergency);
+
+            auto msg_convergence = std::make_shared<controller_interface_msg::msg::Convergence>();
+            msg_convergence->spline_convergence = defalt_spline_convergence;
+            msg_convergence->injection_calculator0 = defalt_injection_calculator0_convergence;
+            msg_convergence->injection_calculator1 = defalt_injection_calculator1_convergence;
+            msg_convergence->injection0 = defalt_injection0_convergence;
+            msg_convergence->injection1 = defalt_injection1_convergence;
+            _pub_convergence->publish(*msg_convergence);
 
             //ハートビート
             _pub_heartbeat = this->create_wall_timer(
@@ -170,6 +187,7 @@ namespace controller_interface
                     msg_convergence->injection_calculator1 = is_injection_calculator1_convergence;
                     msg_convergence->injection0 = is_injection0_convergence;
                     msg_convergence->injection1 = is_injection1_convergence;
+                    
                     _pub_convergence->publish(*msg_convergence);
                 }
             );

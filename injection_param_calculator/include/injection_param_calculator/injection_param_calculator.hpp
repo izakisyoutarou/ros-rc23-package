@@ -32,8 +32,6 @@ namespace injection_param_calculator{
 
             injection_interface_msg::msg::InjectionCommand injection_comand;
             double velocity;
-            double elevation;
-            double direction;
 
             const int mech_num;
             const std::vector<double> yow_limit;  //旋回角の最小最大

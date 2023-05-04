@@ -22,9 +22,10 @@ launch: #起動パラメータ
     angular_max_jer: 0.0
 
     canid:
+      movable: 0x130
       inject: 0x200
       injectable: 0x201
-      movable: 0x202
+      cancel_inject: 0x202
       main_digital_button: 0x220
       sub_digital_button: 0x221
 
@@ -58,7 +59,7 @@ controller_interface_node:
 
     interval_ms: 50
 
-    pole_ms: 10
+    pole_ms: 20
 
     #erのcontroller_interfaceのcontroller_itnerfaceにpole情報を送るUDPのポート番号。また、受け取る番号
     udp_port_pole_execution: 53000 

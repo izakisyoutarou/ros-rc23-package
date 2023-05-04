@@ -84,6 +84,7 @@ namespace controller_interface
             rclcpp::TimerBase::SharedPtr _pub_timer_convergence;
             rclcpp::TimerBase::SharedPtr _socket_timer;
             rclcpp::TimerBase::SharedPtr _pole_timer;
+            rclcpp::TimerBase::SharedPtr _start_timer;
 
             //QoS
             rclcpp::QoS _qos = rclcpp::QoS(10);
@@ -109,12 +110,14 @@ namespace controller_interface
             void callback_injection_calculator_1(const std_msgs::msg::Bool::SharedPtr msg);
 
             void pole_integration();
+            void start_integration();
 
             void _recv_callback();
 
             void _recv_joy_main(const unsigned char data[16]);
             void _recv_joy_sub(const unsigned char data[16]);
             void _recv_pole(const unsigned char data[11]);
+            void _recv_start(const unsigned char data[1]);
             
             //base_control用
             bool is_reset = false;
@@ -154,6 +157,10 @@ namespace controller_interface
             const int udp_port_state_num_rr;
             const int udp_port_pole;
 
+            bool start_er_main;
+            bool start_er_sub;
+            bool start_rr_main;
+
             bool pole_a[11];
 
             //計画機
@@ -173,5 +180,6 @@ namespace controller_interface
             RecvUDP joy_main;
             RecvUDP joy_sub;
             RecvUDP pole;
+            RecvUDP restat_flag;
     };
 }

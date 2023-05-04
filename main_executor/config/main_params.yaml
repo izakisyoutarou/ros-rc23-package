@@ -1,6 +1,6 @@
 launch: #起動パラメータ
   ros__parameters:
-    slcan: true
+    slcan: false
     scan: false
     tcp_endpoint: true
     trajectory_planner: true
@@ -33,6 +33,7 @@ launch: #起動パラメータ
       pole_state: 61000
       joy_main: 50000
       joy_sub: 51000
+      start_flag: 54000
 
 controller_interface_node:
   ros__parameters:
@@ -55,10 +56,9 @@ controller_interface_node:
     move_injection_heteronomy_ms: 17 #上物と足回り手動の周期[ms]
 
     udp_timeout_ms: 20 #UDPのタイムアウト値[ms]
-
     interval_ms: 50
-
-    pole_ms: 10
+    pole_ms: 20
+    start_flag_ms: 100
 
     #erのcontroller_interfaceのcontroller_itnerfaceにpole情報を送るUDPのポート番号。また、受け取る番号
     udp_port_pole_execution: 53000 

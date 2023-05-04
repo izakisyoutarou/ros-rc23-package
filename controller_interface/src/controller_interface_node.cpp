@@ -5,7 +5,7 @@
 using namespace utils;
 
 #define IP_ER_PC "192.168.1.2"
-#define IP_RR_PC "192.168.1.11"
+#define IP_RR_PC "192.168.1.3"
 
 namespace controller_interface
 {
@@ -465,6 +465,8 @@ namespace controller_interface
 
         void SmartphoneGamepad::callback_pole(const controller_interface_msg::msg::Pole::SharedPtr msg)
         {
+            auto msg_scrn_pole = std::make_shared<controller_interface_msg::msg::Pole>(); 
+            unsigned char pole[11];
             pole_a[0] = msg->a;
             pole_a[1] = msg->b;
             pole_a[2] = msg->c;
@@ -476,6 +478,35 @@ namespace controller_interface
             pole_a[8] = msg->i;
             pole_a[9] = msg->j;
             pole_a[10] = msg->k;
+
+            msg_scrn_pole->a = pole_a[0];
+            msg_scrn_pole->b = pole_a[1];
+            msg_scrn_pole->c = pole_a[2];
+            msg_scrn_pole->d = pole_a[3];
+            msg_scrn_pole->e = pole_a[4];
+            msg_scrn_pole->f = pole_a[5];
+            msg_scrn_pole->g = pole_a[6];
+            msg_scrn_pole->h = pole_a[7];
+            msg_scrn_pole->i = pole_a[8];
+            msg_scrn_pole->j = pole_a[9];
+            msg_scrn_pole->k = pole_a[10];
+
+            pole[0] = static_cast<char>(pole_a[0]);
+            pole[1] = static_cast<char>(pole_a[1]);
+            pole[2] = static_cast<char>(pole_a[2]);
+            pole[3] = static_cast<char>(pole_a[3]);
+            pole[4] = static_cast<char>(pole_a[4]);
+            pole[5] = static_cast<char>(pole_a[5]);
+            pole[6] = static_cast<char>(pole_a[6]);
+            pole[7] = static_cast<char>(pole_a[7]);
+            pole[8] = static_cast<char>(pole_a[8]);
+            pole[9] = static_cast<char>(pole_a[9]);
+            pole[10] = static_cast<char>(pole_a[10]);
+
+            
+            command.pole_ER(pole, udp_port_pole);
+            command.pole_RR(pole, udp_port_pole);
+            _pub_scrn_pole->publish(*msg_scrn_pole);
         }
 
         void SmartphoneGamepad::pole_integration()
@@ -506,11 +537,13 @@ namespace controller_interface
             msg_scrn_pole->j = pole_a[9];
             msg_scrn_pole->k = pole_a[10];
 
-            command.pole_ER(pole, udp_port_pole);
-            command.pole_RR(pole, udp_port_pole);
-            send.send(pole, sizeof(pole), IP_RR_PC, udp_port_pole_execution);
+            //RCLCPP_INFO(this->get_logger(), "%d %d %d %d %d %d %d")
 
-            _pub_scrn_pole->publish(*msg_scrn_pole);
+            // command.pole_ER(pole, udp_port_pole);
+            // command.pole_RR(pole, udp_port_pole);
+            // send.send(pole, sizeof(pole), IP_RR_PC, udp_port_pole_execution);
+
+            //_pub_scrn_pole->publish(*msg_scrn_pole);
         }
 
         void SmartphoneGamepad::_recv_callback()
@@ -641,17 +674,17 @@ namespace controller_interface
 
         void SmartphoneGamepad::_recv_pole(const unsigned char data[11])
         {
-            pole_a[0] = data[0];
-            pole_a[1] = data[1];
-            pole_a[2] = data[2];
-            pole_a[3] = data[3];
-            pole_a[4] = data[4];
-            pole_a[5] = data[5];
-            pole_a[6] = data[6];
-            pole_a[7] = data[7];
-            pole_a[8] = data[8];
-            pole_a[9] = data[9];
-            pole_a[10] = data[10];
+            // pole_a[0] = data[0];
+            // pole_a[1] = data[1];
+            // pole_a[2] = data[2];
+            // pole_a[3] = data[3];
+            // pole_a[4] = data[4];
+            // pole_a[5] = data[5];
+            // pole_a[6] = data[6];
+            // pole_a[7] = data[7];
+            // pole_a[8] = data[8];
+            // pole_a[9] = data[9];
+            // pole_a[10] = data[10];
         }
 
         void SmartphoneGamepad::callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg)
@@ -664,7 +697,8 @@ namespace controller_interface
         void SmartphoneGamepad::callback_spline(const std_msgs::msg::Bool::SharedPtr msg)
         {
             //spline_pidから足回り収束のsub。足回りの収束状況。
-            if(!msg->data) is_spline_convergence = true;
+            if(msg->data == false) is_spline_convergence = true;
+            else is_spline_convergence = false;
         }
 
         void SmartphoneGamepad::callback_injection_calculator_0(const std_msgs::msg::Bool::SharedPtr msg)

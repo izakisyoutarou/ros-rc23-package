@@ -154,6 +154,7 @@ namespace controller_interface
             const int udp_port_state_num_rr;
             const int udp_port_pole;
 
+            int s_num;
             bool pole_a[11];
 
             //計画機

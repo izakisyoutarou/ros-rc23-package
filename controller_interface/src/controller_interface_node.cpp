@@ -242,8 +242,15 @@ namespace controller_interface
             if(msg->g)
             {
                 robotcontrol_flag = true;
-                if(is_emergency == false) is_emergency = true;
-                else is_emergency = false;
+                if(s_num == 0)
+                {
+                    if(is_emergency == false) is_emergency = true;
+                }
+                if(s_num == 1)
+                {
+                    if(is_emergency == true) is_emergency = false;
+                    s_num = 0;
+                }
             }
 
             //sはリスタート。緊急と手自動のboolをfalseにしてリセットしている。
@@ -255,11 +262,15 @@ namespace controller_interface
                 is_injection_autonomous = defalt_injection_autonomous_flag;
                 is_emergency = defalt_emergency_flag;
                 injection_mec = defalt_injection_mec;
+                initial_state = "O";
+
                 is_spline_convergence = defalt_spline_convergence;
                 is_injection_calculator0_convergence = defalt_injection_calculator0_convergence;
                 is_injection_calculator1_convergence = defalt_injection_calculator1_convergence;
                 is_injection0_convergence = defalt_injection0_convergence;
                 is_injection1_convergence = defalt_injection1_convergence;
+
+                s_num = 1; 
             }
 
             is_reset = msg->s;
@@ -360,8 +371,14 @@ namespace controller_interface
             if(msg->g)
             {
                 robotcontrol_flag = true;
-                if(is_emergency == false) is_emergency = true;
-                else is_emergency = false;
+                if(s_num == 0)
+                {
+                    if(is_emergency == false) is_emergency = true;
+                }
+                if(s_num == 1)
+                {
+                    if(is_emergency == true) is_emergency = false;
+                }
             }
 
             //sはリスタート。緊急と手自動のboolをfalseにしてリセットしている。
@@ -479,34 +496,35 @@ namespace controller_interface
             pole_a[9] = msg->j;
             pole_a[10] = msg->k;
 
-            msg_scrn_pole->a = pole_a[0];
-            msg_scrn_pole->b = pole_a[1];
-            msg_scrn_pole->c = pole_a[2];
-            msg_scrn_pole->d = pole_a[3];
-            msg_scrn_pole->e = pole_a[4];
-            msg_scrn_pole->f = pole_a[5];
-            msg_scrn_pole->g = pole_a[6];
-            msg_scrn_pole->h = pole_a[7];
-            msg_scrn_pole->i = pole_a[8];
-            msg_scrn_pole->j = pole_a[9];
-            msg_scrn_pole->k = pole_a[10];
+            // msg_scrn_pole->a = pole_a[0];
+            // msg_scrn_pole->b = pole_a[1];
+            // msg_scrn_pole->c = pole_a[2];
+            // msg_scrn_pole->d = pole_a[3];
+            // msg_scrn_pole->e = pole_a[4];
+            // msg_scrn_pole->f = pole_a[5];
+            // msg_scrn_pole->g = pole_a[6];
+            // msg_scrn_pole->h = pole_a[7];
+            // msg_scrn_pole->i = pole_a[8];
+            // msg_scrn_pole->j = pole_a[9];
+            // msg_scrn_pole->k = pole_a[10];
 
-            pole[0] = static_cast<char>(pole_a[0]);
-            pole[1] = static_cast<char>(pole_a[1]);
-            pole[2] = static_cast<char>(pole_a[2]);
-            pole[3] = static_cast<char>(pole_a[3]);
-            pole[4] = static_cast<char>(pole_a[4]);
-            pole[5] = static_cast<char>(pole_a[5]);
-            pole[6] = static_cast<char>(pole_a[6]);
-            pole[7] = static_cast<char>(pole_a[7]);
-            pole[8] = static_cast<char>(pole_a[8]);
-            pole[9] = static_cast<char>(pole_a[9]);
-            pole[10] = static_cast<char>(pole_a[10]);
+            // pole[0] = static_cast<char>(pole_a[0]);
+            // pole[1] = static_cast<char>(pole_a[1]);
+            // pole[2] = static_cast<char>(pole_a[2]);
+            // pole[3] = static_cast<char>(pole_a[3]);
+            // pole[4] = static_cast<char>(pole_a[4]);
+            // pole[5] = static_cast<char>(pole_a[5]);
+            // pole[6] = static_cast<char>(pole_a[6]);
+            // pole[7] = static_cast<char>(pole_a[7]);
+            // pole[8] = static_cast<char>(pole_a[8]);
+            // pole[9] = static_cast<char>(pole_a[9]);
+            // pole[10] = static_cast<char>(pole_a[10]);
 
             
-            command.pole_ER(pole, udp_port_pole);
-            command.pole_RR(pole, udp_port_pole);
-            _pub_scrn_pole->publish(*msg_scrn_pole);
+            // command.pole_ER(pole, udp_port_pole);
+            // command.pole_RR(pole, udp_port_pole);
+            // _pub_scrn_pole->publish(*msg_scrn_pole);
+            // send.send(pole, sizeof(pole), IP_RR_PC, udp_port_pole_execution);
         }
 
         void SmartphoneGamepad::pole_integration()
@@ -539,11 +557,11 @@ namespace controller_interface
 
             //RCLCPP_INFO(this->get_logger(), "%d %d %d %d %d %d %d")
 
-            // command.pole_ER(pole, udp_port_pole);
-            // command.pole_RR(pole, udp_port_pole);
-            // send.send(pole, sizeof(pole), IP_RR_PC, udp_port_pole_execution);
+            command.pole_ER(pole, udp_port_pole);
+            command.pole_RR(pole, udp_port_pole);
+            send.send(pole, sizeof(pole), IP_RR_PC, udp_port_pole_execution);
 
-            //_pub_scrn_pole->publish(*msg_scrn_pole);
+            _pub_scrn_pole->publish(*msg_scrn_pole);
         }
 
         void SmartphoneGamepad::_recv_callback()
@@ -674,17 +692,17 @@ namespace controller_interface
 
         void SmartphoneGamepad::_recv_pole(const unsigned char data[11])
         {
-            // pole_a[0] = data[0];
-            // pole_a[1] = data[1];
-            // pole_a[2] = data[2];
-            // pole_a[3] = data[3];
-            // pole_a[4] = data[4];
-            // pole_a[5] = data[5];
-            // pole_a[6] = data[6];
-            // pole_a[7] = data[7];
-            // pole_a[8] = data[8];
-            // pole_a[9] = data[9];
-            // pole_a[10] = data[10];
+            pole_a[0] = data[0];
+            pole_a[1] = data[1];
+            pole_a[2] = data[2];
+            pole_a[3] = data[3];
+            pole_a[4] = data[4];
+            pole_a[5] = data[5];
+            pole_a[6] = data[6];
+            pole_a[7] = data[7];
+            pole_a[8] = data[8];
+            pole_a[9] = data[9];
+            pole_a[10] = data[10];
         }
 
         void SmartphoneGamepad::callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg)

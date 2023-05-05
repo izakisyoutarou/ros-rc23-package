@@ -40,7 +40,6 @@ namespace injection_param_calculator{
             _pub_can = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx",_qos);
             _pub_isConvergenced = this->create_publisher<std_msgs::msg::Bool>("is_calculator_convergenced_"+to_string(mech_num),_qos);
             RCLCPP_INFO(this->get_logger(),"create injection_ER");
-            RCLCPP_INFO(this->get_logger(),"test: %lf",diff(4.0));
         }
     void InjectionParamCalculator::callback_injection(const injection_interface_msg::msg::InjectionCommand::SharedPtr msg){
         auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
@@ -110,7 +109,6 @@ namespace injection_param_calculator{
         bool isAiming = false;
         int num_loop = 0;
         double old_velocity = calculateFirstVelocity();
-        RCLCPP_INFO(get_logger(),"old_velocty: %lf",first_velocity);
         if(!(yow_limit[0] < injection_comand.direction && injection_comand.direction < yow_limit[1])){
             RCLCPP_INFO(get_logger(),"範囲外です!");
             isConvergence = false;
@@ -118,7 +116,6 @@ namespace injection_param_calculator{
         }
         while (!isAiming){
             double new_velocity = old_velocity - f(old_velocity)/diff(old_velocity);
-            RCLCPP_INFO(get_logger(),"new_velocity: %lf",new_velocity);
             if(fabs(new_velocity - old_velocity)<eps && 0 < new_velocity && new_velocity < velocity_lim_max){
                 velocity = new_velocity;
                 isAiming = true;

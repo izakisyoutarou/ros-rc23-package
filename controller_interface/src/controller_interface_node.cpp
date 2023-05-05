@@ -5,7 +5,7 @@
 using namespace utils;
 
 #define IP_ER_PC "192.168.1.2"
-#define IP_RR_PC "192.168.1.11"
+#define IP_RR_PC "192.168.1.3"
 
 namespace controller_interface
 {
@@ -242,8 +242,15 @@ namespace controller_interface
             if(msg->g)
             {
                 robotcontrol_flag = true;
-                if(is_emergency == false) is_emergency = true;
-                else is_emergency = false;
+                if(s_num == 0)
+                {
+                    if(is_emergency == false) is_emergency = true;
+                }
+                if(s_num == 1)
+                {
+                    if(is_emergency == true) is_emergency = false;
+                    s_num = 0;
+                }
             }
 
             //sはリスタート。緊急と手自動のboolをfalseにしてリセットしている。
@@ -255,11 +262,15 @@ namespace controller_interface
                 is_injection_autonomous = defalt_injection_autonomous_flag;
                 is_emergency = defalt_emergency_flag;
                 injection_mec = defalt_injection_mec;
+                initial_state = "O";
+
                 is_spline_convergence = defalt_spline_convergence;
                 is_injection_calculator0_convergence = defalt_injection_calculator0_convergence;
                 is_injection_calculator1_convergence = defalt_injection_calculator1_convergence;
                 is_injection0_convergence = defalt_injection0_convergence;
                 is_injection1_convergence = defalt_injection1_convergence;
+
+                s_num = 1; 
             }
 
             is_reset = msg->s;
@@ -360,8 +371,14 @@ namespace controller_interface
             if(msg->g)
             {
                 robotcontrol_flag = true;
-                if(is_emergency == false) is_emergency = true;
-                else is_emergency = false;
+                if(s_num == 0)
+                {
+                    if(is_emergency == false) is_emergency = true;
+                }
+                if(s_num == 1)
+                {
+                    if(is_emergency == true) is_emergency = false;
+                }
             }
 
             //sはリスタート。緊急と手自動のboolをfalseにしてリセットしている。
@@ -465,6 +482,8 @@ namespace controller_interface
 
         void SmartphoneGamepad::callback_pole(const controller_interface_msg::msg::Pole::SharedPtr msg)
         {
+            auto msg_scrn_pole = std::make_shared<controller_interface_msg::msg::Pole>(); 
+            unsigned char pole[11];
             pole_a[0] = msg->a;
             pole_a[1] = msg->b;
             pole_a[2] = msg->c;
@@ -476,6 +495,36 @@ namespace controller_interface
             pole_a[8] = msg->i;
             pole_a[9] = msg->j;
             pole_a[10] = msg->k;
+
+            // msg_scrn_pole->a = pole_a[0];
+            // msg_scrn_pole->b = pole_a[1];
+            // msg_scrn_pole->c = pole_a[2];
+            // msg_scrn_pole->d = pole_a[3];
+            // msg_scrn_pole->e = pole_a[4];
+            // msg_scrn_pole->f = pole_a[5];
+            // msg_scrn_pole->g = pole_a[6];
+            // msg_scrn_pole->h = pole_a[7];
+            // msg_scrn_pole->i = pole_a[8];
+            // msg_scrn_pole->j = pole_a[9];
+            // msg_scrn_pole->k = pole_a[10];
+
+            // pole[0] = static_cast<char>(pole_a[0]);
+            // pole[1] = static_cast<char>(pole_a[1]);
+            // pole[2] = static_cast<char>(pole_a[2]);
+            // pole[3] = static_cast<char>(pole_a[3]);
+            // pole[4] = static_cast<char>(pole_a[4]);
+            // pole[5] = static_cast<char>(pole_a[5]);
+            // pole[6] = static_cast<char>(pole_a[6]);
+            // pole[7] = static_cast<char>(pole_a[7]);
+            // pole[8] = static_cast<char>(pole_a[8]);
+            // pole[9] = static_cast<char>(pole_a[9]);
+            // pole[10] = static_cast<char>(pole_a[10]);
+
+            
+            // command.pole_ER(pole, udp_port_pole);
+            // command.pole_RR(pole, udp_port_pole);
+            // _pub_scrn_pole->publish(*msg_scrn_pole);
+            // send.send(pole, sizeof(pole), IP_RR_PC, udp_port_pole_execution);
         }
 
         void SmartphoneGamepad::pole_integration()
@@ -505,6 +554,8 @@ namespace controller_interface
             msg_scrn_pole->i = pole_a[8];
             msg_scrn_pole->j = pole_a[9];
             msg_scrn_pole->k = pole_a[10];
+
+            //RCLCPP_INFO(this->get_logger(), "%d %d %d %d %d %d %d")
 
             command.pole_ER(pole, udp_port_pole);
             command.pole_RR(pole, udp_port_pole);
@@ -664,7 +715,8 @@ namespace controller_interface
         void SmartphoneGamepad::callback_spline(const std_msgs::msg::Bool::SharedPtr msg)
         {
             //spline_pidから足回り収束のsub。足回りの収束状況。
-            if(!msg->data) is_spline_convergence = true;
+            if(msg->data == false) is_spline_convergence = true;
+            else is_spline_convergence = false;
         }
 
         void SmartphoneGamepad::callback_injection_calculator_0(const std_msgs::msg::Bool::SharedPtr msg)

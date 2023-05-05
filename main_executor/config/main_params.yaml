@@ -22,9 +22,10 @@ launch: #起動パラメータ
     angular_max_jer: 0.0
 
     canid:
+      movable: 0x130
       inject: 0x200
       injectable: 0x201
-      movable: 0x202
+      cancel_inject: 0x202
       main_digital_button: 0x220
       sub_digital_button: 0x221
 

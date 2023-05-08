@@ -9,10 +9,16 @@ namespace injection_param_calculator{
     InjectionParamCalculator::InjectionParamCalculator(const std::string &name_space, const rclcpp::NodeOptions &options, const int mech_num)
         :rclcpp::Node("injection_param_calculator_node" ,name_space,options),
         mech_num(mech_num),
+        mass(get_parameter("mass").as_double()),
         gravitational_accelerastion(get_parameter("gravitational_accelerastion").as_double()),
+        air_resistance(get_parameter("air_resistance").as_double()),
         foundation_hight(get_parameter("foundation_hight").as_double()),
         velocity_lim_max(get_parameter("velocity_lim_max").as_double()),
+        first_velocity(get_parameter("first_velocity").as_double()),
+        first_velocity_low(get_parameter("first_velocity_low").as_double()),
+        angle_bound(get_parameter("angle_bound").as_double()),
         injection_angle(get_parameter("injection_angle").as_double()),
+        max_loop(get_parameter("max_loop").as_int()),
         yow_limit(get_parameter("yow_limit_m"+to_string(mech_num)).as_double_array())
         {
             _sub_injection_command = this->create_subscription<injection_interface_msg::msg::InjectionCommand>(
@@ -34,6 +40,7 @@ namespace injection_param_calculator{
             _pub_can = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx",_qos);
             _pub_isConvergenced = this->create_publisher<std_msgs::msg::Bool>("is_calculator_convergenced_"+to_string(mech_num),_qos);
             RCLCPP_INFO(this->get_logger(),"create injection_ER");
+            RCLCPP_INFO(this->get_logger(),"test: %lf",diff(4.0));
         }
     void InjectionParamCalculator::callback_injection(const injection_interface_msg::msg::InjectionCommand::SharedPtr msg){
         auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
@@ -84,39 +91,66 @@ namespace injection_param_calculator{
         }
     }
 
+    double InjectionParamCalculator::calculateFirstVelocity(){
+        double angle = atan2(injection_comand.height,injection_comand.distance);
+        if(angle<dtor(angle_bound)){
+            return first_velocity;
+        }
+        else{
+            return first_velocity_low;
+        }
+    }
+
     void InjectionParamCalculator::callback_is_convergence(const controller_interface_msg::msg::Convergence::SharedPtr msg){
         is_convergence = msg->spline_convergence;
     }
     
     bool InjectionParamCalculator::calculateVelocity(){
         bool isConvergence = false;
+        bool isAiming = false;
+        int num_loop = 0;
+        double old_velocity = calculateFirstVelocity();
+        RCLCPP_INFO(get_logger(),"old_velocty: %lf",first_velocity);
+        if(!(yow_limit[0] < injection_comand.direction && injection_comand.direction < yow_limit[1])){
+            RCLCPP_INFO(get_logger(),"範囲外です!");
+            isConvergence = false;
+            return isConvergence;
+        }
+        while (!isAiming){
+            double new_velocity = old_velocity - f(old_velocity)/diff(old_velocity);
+            RCLCPP_INFO(get_logger(),"new_velocity: %lf",new_velocity);
+            if(fabs(new_velocity - old_velocity)<eps && 0 < new_velocity && new_velocity < velocity_lim_max){
+                velocity = new_velocity;
+                isAiming = true;
+                isConvergence = true;
+                break;
+            }
+            old_velocity = new_velocity;
+            num_loop++;
+            if(num_loop>max_loop){
+                isAiming = false;
+                isConvergence = false;
+                RCLCPP_INFO(get_logger(),"発散しました!");
+                break;
+            }
+        }
+        
+            
+    }
+    double InjectionParamCalculator::f(double v0){
+        double m = mass;
         double g = gravitational_accelerastion;
-        double angle = dtor(injection_angle);
+        double k = air_resistance;
         double y0 = foundation_hight;
+        double angle = dtor(injection_angle);
+        double c_sin = sin(angle);
+        double c_cos = cos(angle);
+        double c_tan = tan(angle);
         double x = injection_comand.distance;
         double y = injection_comand.height;
-        double c_tan = tan(angle);
-        double c_cos = cos(angle);
-        double Discriminant = x*c_tan + y0 - y;
-        if(!(dtor(yow_limit[0]) < injection_comand.direction && injection_comand.direction < dtor(yow_limit[1]))){
-            RCLCPP_INFO(get_logger(),"範囲外です");
-            isConvergence = false;
-            return isConvergence;
-
-        }
-        if(Discriminant<=0){
-            RCLCPP_INFO(get_logger(),"角度が足りません");
-            isConvergence = false;
-            return isConvergence;
-        }
-        velocity = sqrt(g*x*x/(2*c_cos*c_cos*Discriminant));
-        if(velocity > velocity_lim_max || velocity<=0){
-            RCLCPP_INFO(get_logger(),"速度が足りません");
-            isConvergence = false;
-        }
-        else{
-            isConvergence = true;
-        }
-        return isConvergence;   
+        return x*c_tan + m*g*x/(k*v0*c_cos) + m*m*g/(k*k)*log(abs(1.0-k*x/(m*v0*c_cos))) + y0 - y;
+    }
+    double InjectionParamCalculator::diff(double v0){
+        return (f(v0 + eps) - f(v0 - eps))/(2.0*eps);
     }
 }

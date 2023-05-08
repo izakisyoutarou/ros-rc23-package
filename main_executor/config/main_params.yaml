@@ -38,9 +38,9 @@ launch: #起動パラメータ
 controller_interface_node:
   ros__parameters:
     # 手動の並進　速度[m/s],加速度[m/s^2],加減速度[-m/s^2]
-    linear_max_vel: 2.0
-    linear_max_acc: 6.0
-    linear_max_dec: 6.0
+    linear_max_vel: 0.5
+    linear_max_acc: 1.0
+    linear_max_dec: 1.0
     # 手動の回転  速度[deg/s],加速度[deg/s^2],加減速度[-deg/s^2]
     angular_max_vel: 45.0
     angular_max_acc: 180.0
@@ -104,7 +104,7 @@ spline_pid_node:
     angular_pos_integral_gain: 0.03  #回転位置ズレの積分ゲイン 0.01
 
     linear_pos_tolerance: 0.015  #並進到達位置の許容誤差[m]
-    angular_pos_tolerance: 2.0  #回転到達位置の許容誤差[deg]
+    angular_pos_tolerance: 1.0  #回転到達位置の許容誤差[deg]
 
 spline_trajectories_node:
   ros__parameters:
@@ -126,10 +126,16 @@ mcl_2d_node:
 
 injection_param_calculator_node:
   ros__parameters:
+    mass: 0.10 #リングの重量
     gravitational_accelerastion: 9.80665  #重力加速度[m/s^2]
+    air_resistance: 0.045
     foundation_hight: 0.52049  #射出機構の地面からの高さ[m]
     velocity_lim_max: 15.0 #最大初速度[m/s]
     injection_angle: 48.0 #射出角度[deg]
+    first_velocity: 10.0 #初速度[m/s]
+    first_velocity_low : 5.0 #初速度[m/s]
+    angle_bound: 22.5 #初速度の境界角度[deg]
+    max_loop: 100 #ニュートン法の最大繰り返し数
     yow_limit_m0: [-60.0,60.0] #左の射出機構の方向角の最小最大[deg]
     yow_limit_m1: [-60.0,60.0] #右の射出機構の方向角の最小最大[deg]
 

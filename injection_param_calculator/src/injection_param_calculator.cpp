@@ -40,7 +40,6 @@ namespace injection_param_calculator{
             _pub_can = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx",_qos);
             _pub_isConvergenced = this->create_publisher<std_msgs::msg::Bool>("is_calculator_convergenced_"+to_string(mech_num),_qos);
             RCLCPP_INFO(this->get_logger(),"create injection_ER");
-            RCLCPP_INFO(this->get_logger(),"test: %lf",diff(4.0));
         }
     void InjectionParamCalculator::callback_injection(const injection_interface_msg::msg::InjectionCommand::SharedPtr msg){
         auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
@@ -50,14 +49,9 @@ namespace injection_param_calculator{
         injection_comand.distance = msg->distance;
         injection_comand.direction = msg->direction;
         injection_comand.height = msg->height;
-        RCLCPP_INFO(get_logger(),"distance: %lf",injection_comand.distance);
-        RCLCPP_INFO(get_logger(),"height: %lf",injection_comand.height);
-        RCLCPP_INFO(get_logger(),"direction(deg): %lf",rtod(injection_comand.direction));
 
-        isConvergenced = calculateVelocity();
+        isConvergenced = calculateVelocity();        
         msg_isConvergenced->data = isConvergenced;
-        RCLCPP_INFO(this->get_logger(),"mech_num: %d velocity: %lf[m/s]",mech_num,velocity);
-        RCLCPP_INFO(this->get_logger(),"mech_num: %d direction: %lf[rad]",mech_num,injection_comand.direction);
 
         msg_injection->canid = 0x210 + 2*mech_num;
         msg_injection->candlc = 4;
@@ -70,9 +64,13 @@ namespace injection_param_calculator{
         msg_yaw->canid = 0x210 + 2*mech_num + 1;
         msg_yaw->candlc = 4;
         float_to_bytes(_candata, static_cast<float>(injection_comand.direction));
-        for(int i=0; i<msg_yaw->candlc; i++) msg_yaw->candata[i] = _candata[i];
+        for(int i=0; i<msg_yaw->candlc; i++){
+            msg_yaw->candata[i] = _candata[i];
+        }
         _pub_isConvergenced->publish(*msg_isConvergenced);
+
         if(isConvergenced){
+            RCLCPP_INFO(get_logger(),"計算が収束しました");
             _pub_can->publish(*msg_injection);
             _pub_can->publish(*msg_yaw);
         }
@@ -110,7 +108,6 @@ namespace injection_param_calculator{
         bool isAiming = false;
         int num_loop = 0;
         double old_velocity = calculateFirstVelocity();
-        RCLCPP_INFO(get_logger(),"old_velocty: %lf",first_velocity);
         if(!(yow_limit[0] < injection_comand.direction && injection_comand.direction < yow_limit[1])){
             RCLCPP_INFO(get_logger(),"範囲外です!");
             isConvergence = false;
@@ -118,7 +115,6 @@ namespace injection_param_calculator{
         }
         while (!isAiming){
             double new_velocity = old_velocity - f(old_velocity)/diff(old_velocity);
-            RCLCPP_INFO(get_logger(),"new_velocity: %lf",new_velocity);
             if(fabs(new_velocity - old_velocity)<eps && 0 < new_velocity && new_velocity < velocity_lim_max){
                 velocity = new_velocity;
                 isAiming = true;
@@ -134,8 +130,7 @@ namespace injection_param_calculator{
                 break;
             }
         }
-        
-            
+        return isConvergence;
     }
     double InjectionParamCalculator::f(double v0){
         double m = mass;
@@ -143,7 +138,6 @@ namespace injection_param_calculator{
         double k = air_resistance;
         double y0 = foundation_hight;
         double angle = dtor(injection_angle);
-        double c_sin = sin(angle);
         double c_cos = cos(angle);
         double c_tan = tan(angle);
         double x = injection_comand.distance;

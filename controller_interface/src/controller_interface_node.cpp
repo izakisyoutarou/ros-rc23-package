@@ -545,8 +545,6 @@ namespace controller_interface
             msg_scrn_pole->j = pole_a[9];
             msg_scrn_pole->k = pole_a[10];
 
-            //RCLCPP_INFO(this->get_logger(), "%d %d %d %d %d %d %d")
-
             command.pole_ER(pole, udp_port_pole);
             command.pole_RR(pole, udp_port_pole);
             send.send(pole, sizeof(pole), IP_RR_PC, 62000);

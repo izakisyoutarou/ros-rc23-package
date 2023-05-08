@@ -49,14 +49,9 @@ namespace injection_param_calculator{
         injection_comand.distance = msg->distance;
         injection_comand.direction = msg->direction;
         injection_comand.height = msg->height;
-        RCLCPP_INFO(get_logger(),"distance: %lf",injection_comand.distance);
-        RCLCPP_INFO(get_logger(),"height: %lf",injection_comand.height);
-        RCLCPP_INFO(get_logger(),"direction(deg): %lf",rtod(injection_comand.direction));
 
-        isConvergenced = calculateVelocity();
+        isConvergenced = calculateVelocity();        
         msg_isConvergenced->data = isConvergenced;
-        RCLCPP_INFO(this->get_logger(),"mech_num: %d velocity: %lf[m/s]",mech_num,velocity);
-        RCLCPP_INFO(this->get_logger(),"mech_num: %d direction: %lf[rad]",mech_num,injection_comand.direction);
 
         msg_injection->canid = 0x210 + 2*mech_num;
         msg_injection->candlc = 4;
@@ -69,9 +64,13 @@ namespace injection_param_calculator{
         msg_yaw->canid = 0x210 + 2*mech_num + 1;
         msg_yaw->candlc = 4;
         float_to_bytes(_candata, static_cast<float>(injection_comand.direction));
-        for(int i=0; i<msg_yaw->candlc; i++) msg_yaw->candata[i] = _candata[i];
+        for(int i=0; i<msg_yaw->candlc; i++){
+            msg_yaw->candata[i] = _candata[i];
+        }
         _pub_isConvergenced->publish(*msg_isConvergenced);
+
         if(isConvergenced){
+            RCLCPP_INFO(get_logger(),"計算が収束しました");
             _pub_can->publish(*msg_injection);
             _pub_can->publish(*msg_yaw);
         }
@@ -131,8 +130,7 @@ namespace injection_param_calculator{
                 break;
             }
         }
-        
-            
+        return isConvergence;
     }
     double InjectionParamCalculator::f(double v0){
         double m = mass;
@@ -140,7 +138,6 @@ namespace injection_param_calculator{
         double k = air_resistance;
         double y0 = foundation_hight;
         double angle = dtor(injection_angle);
-        double c_sin = sin(angle);
         double c_cos = cos(angle);
         double c_tan = tan(angle);
         double x = injection_comand.distance;

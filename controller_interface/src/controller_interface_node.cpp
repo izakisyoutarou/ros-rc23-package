@@ -29,6 +29,7 @@ namespace controller_interface
         joy_main(get_parameter("port.joy_main").as_int()),
         joy_sub(get_parameter("port.joy_sub").as_int()),
         pole(get_parameter("udp_port_pole_execution").as_int()),
+        restat_flag(get_parameter("port.start_flag").as_int()),
         defalt_pitch(static_cast<float>(get_parameter("defalt_pitch").as_double())),
         manual_linear_max_vel(static_cast<float>(get_parameter("linear_max_vel").as_double())),
         manual_angular_max_vel(dtor(static_cast<float>(get_parameter("angular_max_vel").as_double()))),
@@ -202,6 +203,11 @@ namespace controller_interface
                 [this] { pole_integration(); }
             );
 
+            _start_timer = this->create_wall_timer(
+                std::chrono::milliseconds(this->get_parameter("start_flag_ms").as_int()),
+                [this] { start_integration(); }
+            );
+
             //計画機
             velPlanner_linear_x.limit(limit_linear);
             velPlanner_linear_y.limit(limit_linear);
@@ -242,15 +248,7 @@ namespace controller_interface
             if(msg->g)
             {
                 robotcontrol_flag = true;
-                if(s_num == 0)
-                {
-                    if(is_emergency == false) is_emergency = true;
-                }
-                if(s_num == 1)
-                {
-                    if(is_emergency == true) is_emergency = false;
-                    s_num = 0;
-                }
+                is_emergency = true;
             }
 
             //sはリスタート。緊急と手自動のboolをfalseにしてリセットしている。
@@ -260,7 +258,7 @@ namespace controller_interface
                 flag_restart = true;
                 is_move_autonomous = defalt_move_autonomous_flag;
                 is_injection_autonomous = defalt_injection_autonomous_flag;
-                is_emergency = defalt_emergency_flag;
+                is_emergency = false;
                 injection_mec = defalt_injection_mec;
                 initial_state = "O";
 
@@ -268,9 +266,7 @@ namespace controller_interface
                 is_injection_calculator0_convergence = defalt_injection_calculator0_convergence;
                 is_injection_calculator1_convergence = defalt_injection_calculator1_convergence;
                 is_injection0_convergence = defalt_injection0_convergence;
-                is_injection1_convergence = defalt_injection1_convergence;
-
-                s_num = 1; 
+                is_injection1_convergence = defalt_injection1_convergence; 
             }
 
             is_reset = msg->s;
@@ -311,6 +307,7 @@ namespace controller_interface
             if(msg->s)
             {
                 _pub_canusb->publish(*msg_restart);
+                _pub_canusb->publish(*msg_emergency);
             }
             if(flag_restart)
             {
@@ -371,14 +368,7 @@ namespace controller_interface
             if(msg->g)
             {
                 robotcontrol_flag = true;
-                if(s_num == 0)
-                {
-                    if(is_emergency == false) is_emergency = true;
-                }
-                if(s_num == 1)
-                {
-                    if(is_emergency == true) is_emergency = false;
-                }
+                is_emergency = true;
             }
 
             //sはリスタート。緊急と手自動のboolをfalseにしてリセットしている。
@@ -555,13 +545,30 @@ namespace controller_interface
             msg_scrn_pole->j = pole_a[9];
             msg_scrn_pole->k = pole_a[10];
 
-            //RCLCPP_INFO(this->get_logger(), "%d %d %d %d %d %d %d")
-
             command.pole_ER(pole, udp_port_pole);
             command.pole_RR(pole, udp_port_pole);
-            send.send(pole, sizeof(pole), IP_RR_PC, udp_port_pole_execution);
+            send.send(pole, sizeof(pole), IP_RR_PC, 62000);
 
             _pub_scrn_pole->publish(*msg_scrn_pole);
+        }
+
+        void SmartphoneGamepad::start_integration()
+        {
+            // const unsigned char data[2] = {""};
+            // if(start_er_main && start_er_sub && start_rr_main)
+            // {  
+            //     data[0] = "L";
+            //     data[1] = "0";
+            //     command.state_num_ER(data, udp_port_state_num_er);
+            //     command.state_num_RR(data, udp_port_state_num_rr);
+            //     data[0] = "O";
+            //     data[1] = "\0";
+            //     command.state_num_ER(data, udp_port_state_num_er);
+            //     command.state_num_RR(data, udp_port_state_num_rr);
+            // }
+            // start_er_main = false;
+            // start_er_sub = false;
+            // start_rr_main = false;
         }
 
         void SmartphoneGamepad::_recv_callback()
@@ -579,6 +586,11 @@ namespace controller_interface
             if(pole.is_recved())
             {
                 unsigned char data[11];
+                _recv_pole(pole.data(data, sizeof(data)));
+            }
+            if(restat_flag.is_recved())
+            {
+                unsigned char data[1];
                 _recv_pole(pole.data(data, sizeof(data)));
             }
         }
@@ -703,6 +715,11 @@ namespace controller_interface
             pole_a[8] = data[8];
             pole_a[9] = data[9];
             pole_a[10] = data[10];
+        }
+
+        void SmartphoneGamepad::_recv_start(const unsigned char data[1])
+        {
+            start_rr_main = static_cast<bool>(data[0]);
         }
 
         void SmartphoneGamepad::callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg)

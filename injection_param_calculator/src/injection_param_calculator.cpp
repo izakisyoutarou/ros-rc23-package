@@ -31,11 +31,6 @@ namespace injection_param_calculator{
                 _qos,
                 std::bind(&InjectionParamCalculator::callback_is_convergence,this,std::placeholders::_1)
             );
-            _sub_pad = this->create_subscription<controller_interface_msg::msg::Pad>(
-                "sub_pad_er_sub",
-                _qos,
-                std::bind(&InjectionParamCalculator::callback_sub_pad,this,std::placeholders::_1)
-            );
 
             _pub_can = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx",_qos);
             _pub_isConvergenced = this->create_publisher<std_msgs::msg::Bool>("is_calculator_convergenced_"+to_string(mech_num),_qos);
@@ -70,22 +65,9 @@ namespace injection_param_calculator{
         _pub_isConvergenced->publish(*msg_isConvergenced);
 
         if(isConvergenced){
-            RCLCPP_INFO(get_logger(),"計算が収束しました");
+            RCLCPP_INFO(get_logger(),"mech_num: %d 計算が収束しました",mech_num);
             _pub_can->publish(*msg_injection);
             _pub_can->publish(*msg_yaw);
-        }
-    }
-    void InjectionParamCalculator::callback_sub_pad(const controller_interface_msg::msg::Pad::SharedPtr msg){
-        auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-        if(msg->x){
-            velocity = 0.0;
-            msg_injection->canid = 0x210 + 2*mech_num;
-            msg_injection->candlc = 4;
-            //送信
-            uint8_t _candata[4];
-            float_to_bytes(_candata, static_cast<float>(velocity));
-            for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
-            _pub_can->publish(*msg_injection);
         }
     }
 
@@ -109,7 +91,7 @@ namespace injection_param_calculator{
         int num_loop = 0;
         double old_velocity = calculateFirstVelocity();
         if(!(yow_limit[0] < injection_comand.direction && injection_comand.direction < yow_limit[1])){
-            RCLCPP_INFO(get_logger(),"範囲外です!");
+            RCLCPP_INFO(get_logger(),"mech_num: &%d 範囲外です!",mech_num);
             isConvergence = false;
             return isConvergence;
         }
@@ -126,7 +108,7 @@ namespace injection_param_calculator{
             if(num_loop>max_loop){
                 isAiming = false;
                 isConvergence = false;
-                RCLCPP_INFO(get_logger(),"発散しました!");
+                RCLCPP_INFO(get_logger(),"mech_num: %d 発散しました!",mech_num);
                 break;
             }
         }

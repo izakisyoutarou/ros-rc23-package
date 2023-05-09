@@ -20,7 +20,6 @@ namespace injection_param_calculator{
             rclcpp::QoS _qos = rclcpp::QoS(10);
 
             rclcpp::Subscription<controller_interface_msg::msg::Convergence>::SharedPtr _sub_is_convergence;
-            rclcpp::Subscription<controller_interface_msg::msg::Pad>::SharedPtr _sub_pad;
 
             rclcpp::Publisher<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _pub_can;
             rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr _pub_isConvergenced;

@@ -1,14 +1,14 @@
 launch: #起動パラメータ
   ros__parameters:
-    slcan: true
-    scan: true
-    tcp_endpoint: true
+    slcan: false
+    scan: false
+    tcp_endpoint: false
     trajectory_planner: true
 
 /**:  #ワイルドカード(ここのパラメータは全ノードから読める: <名前に注意>)
   ros__parameters:
-    initial_pose: [-5.45, 0.3, 0.0]  #初期位置[x,y,yaw]
-    2nd_initial_pose: [-5.45, 0.3, 0.0] #2つ目の初期位置[x,y,yaw]
+    initial_pose: [-5.45, 0.0, 0.0]  #初期位置[x,y,yaw]
+    2nd_initial_pose: [-0.25, -5.7, 1.5708] #2つ目の初期位置[x,y,yaw]
 
     # 自動の並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
     linear_max_vel: 2.0
@@ -62,12 +62,12 @@ controller_interface_node:
     pole_ms: 20
 
     #erのcontroller_interfaceのcontroller_itnerfaceにpole情報を送るUDPのポート番号。また、受け取る番号
-    udp_port_pole_execution: 53000 
-    
+    udp_port_pole_execution: 53000
+
     udp_port_state_num_er: 57000 #
     udp_port_state_num_rr: 60000 #
     udp_port_pole: 61000 #
-    
+
     #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角
     defalt_restart_flag: false
     defalt_emergency_flag: true
@@ -141,12 +141,13 @@ injection_interface_node:
 RANSAC_localization:
   ros__parameters:
     robot_type: "ER"
-    plot_mode: false
+    plot_mode: true
     laser_weight: 1.0 #lidarの重み
-    odom_weight_liner: 1.0e-1
-    odom_weight_angler: 1.0e-1
-    voxel_size: 0.05
+    odom_weight_liner: 5.0e-3
+    odom_weight_angler: 5.0e-4
+    voxel_size: 0.08
     trial_num: 40
     inlier_dist_threshold: 0.01
-    inlier_length_threshold: 1.3
+    inlier_length_threshold: 1.5
     tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]
+    # tf_laser2robot: [0.1975,0.0,0.0,  3.14159,0.0,0.0]

@@ -36,7 +36,7 @@ launch: #起動パラメータ
 
     port:
       joy_main: 50000
-      er_robot_state: 52000
+      rr_robot_state: 52000
       pole_share: 53000
       start_flag: 54000
       robot_state: 57000

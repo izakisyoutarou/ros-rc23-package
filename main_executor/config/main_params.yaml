@@ -83,6 +83,9 @@ controller_interface_node:
     defalt_injection0_convergence: false
     defalt_injection1_convergence: false
 
+    initial_pickup_state: "L0"
+    initial_inject_state: "A"
+
 sequencer_node:
   ros__parameters:
     interval_ms: 50

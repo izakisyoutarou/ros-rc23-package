@@ -121,7 +121,6 @@ namespace controller_interface
             //初期化指定用
             const float manual_linear_max_vel;
             const float manual_angular_max_vel;
-            const float manual_injection_max_vel;
             const bool defalt_restart_flag;
             const bool defalt_move_autonomous_flag;
             const bool defalt_emergency_flag;
@@ -161,9 +160,6 @@ namespace controller_interface
 
             VelPlanner velPlanner_angular_z;
             const VelPlannerLimit limit_angular;
-
-            VelPlanner velPlanner_injection_v;
-            const VelPlannerLimit limit_injection;
 
             send_udp send;
             super_command command;

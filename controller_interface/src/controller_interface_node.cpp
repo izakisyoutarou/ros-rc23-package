@@ -19,10 +19,6 @@ namespace controller_interface
         dtor(get_parameter("angular_max_vel").as_double()),
         dtor(get_parameter("angular_max_acc").as_double()),
         dtor(get_parameter("angular_max_dec").as_double()) ),
-        limit_injection(DBL_MAX,
-        dtor(get_parameter("injection_max_vel").as_double()),
-        dtor(get_parameter("injection_max_acc").as_double()),
-        dtor(get_parameter("injection_max_dec").as_double()) ),
 
         joy_main(get_parameter("port.joy_main").as_int()),
         pole(get_parameter("port.pole_share").as_int()),
@@ -31,7 +27,6 @@ namespace controller_interface
 
         manual_linear_max_vel(static_cast<float>(get_parameter("linear_max_vel").as_double())),
         manual_angular_max_vel(dtor(static_cast<float>(get_parameter("angular_max_vel").as_double()))),
-        manual_injection_max_vel(dtor(static_cast<float>(get_parameter("injection_max_vel").as_double()))),
 
         defalt_restart_flag(get_parameter("defalt_restart_flag").as_bool()),
         defalt_emergency_flag(get_parameter("defalt_emergency_flag").as_bool()),
@@ -205,7 +200,6 @@ namespace controller_interface
             velPlanner_linear_x.limit(limit_linear);
             velPlanner_linear_y.limit(limit_linear);
             velPlanner_angular_z.limit(limit_angular);
-            velPlanner_injection_v.limit(limit_injection);
         }
 
         void SmartphoneGamepad::callback_pad_main(const controller_interface_msg::msg::Pad::SharedPtr msg)

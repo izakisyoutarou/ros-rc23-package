@@ -1,7 +1,7 @@
 launch: #起動パラメータ
   ros__parameters:
-    slcan: true
-    scan: true
+    slcan: false
+    scan: false
     tcp_endpoint: true
     trajectory_planner: true
 
@@ -22,6 +22,11 @@ launch: #起動パラメータ
     angular_max_jer: 0.0
 
     canid:
+      emergency: 0x000
+      heartbeat: 0x001
+      restart: 0x002
+      linear: 0x100
+      angular: 0x101
       movable: 0x130
       inject: 0x200
       injectable: 0x201
@@ -30,11 +35,16 @@ launch: #起動パラメータ
       sub_digital_button: 0x221
 
     port:
+      joy_main: 50000
+      er_robot_state: 52000
+      pole_share: 53000
+      start_flag: 54000
       robot_state: 57000
       pole_state: 61000
-      joy_main: 50000
-      joy_sub: 51000
-      start_flag: 54000
+
+    ip:
+      er_pc: "192.168.1.2"
+      rr_pc: "192.168.1.3"
 
 controller_interface_node:
   ros__parameters:
@@ -60,21 +70,11 @@ controller_interface_node:
     interval_ms: 50
     pole_ms: 20
     start_flag_ms: 100
-
-    #erのcontroller_interfaceのcontroller_itnerfaceにpole情報を送るUDPのポート番号。また、受け取る番号
-    udp_port_pole_execution: 53000 
-    
-    udp_port_state_num_er: 57000 #
-    udp_port_state_num_rr: 60000 #
-    udp_port_pole: 61000 #
     
     #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角
     defalt_restart_flag: false
     defalt_emergency_flag: true
     defalt_move_autonomous_flag: true
-    defalt_injection_autonomous_flag: true
-    defalt_injection_mec: 1
-    defalt_pitch: 45.0
 
     #収束の初期値
     defalt_spline_convergence: false
@@ -82,7 +82,6 @@ controller_interface_node:
     defalt_injection_calculator1_convergence: false
     defalt_injection0_convergence: false
     defalt_injection1_convergence: false
-
 
 sequencer_node:
   ros__parameters:

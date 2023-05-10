@@ -8,8 +8,8 @@
 #include "controller_interface_msg/msg/pad.hpp"
 #include "controller_interface_msg/msg/pole.hpp"
 #include "controller_interface_msg/msg/convergence.hpp"
+#include "controller_interface_msg/msg/remaining_ring.hpp"
 #include "geometry_msgs/msg/twist.hpp"
-#include "sensor_msgs/msg/joy.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/string.hpp"
 //他のpkg
@@ -18,15 +18,6 @@
 #include "socket_udp.hpp"
 #include "trapezoidal_velocity_planner.hpp"
 #include "my_visibility.h"
-//UDP
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <unistd.h>
-#include <arpa/inet.h>
-#include <cstring>//memcpyのため
 
 #include "send_udp.hpp"
 #include "super_command.hpp"
@@ -49,11 +40,8 @@ namespace controller_interface
             //ER_mainのcontrollerから
             rclcpp::Subscription<controller_interface_msg::msg::Pad>::SharedPtr _sub_pad_main;
             rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_state_num_ER;
-            rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_state_num_RR;
             rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_initial_state;
-            //ER_subのcontrollerから
-            rclcpp::Subscription<controller_interface_msg::msg::Pad>::SharedPtr _sub_pad_sub;
-            rclcpp::Subscription<controller_interface_msg::msg::Pole>::SharedPtr _sub_pole;
+            rclcpp::Subscription<controller_interface_msg::msg::Pole>::SharedPtr _sub_pole_share;
 
             //mainボードから
             rclcpp::Subscription<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _sub_main_injection_possible;
@@ -70,11 +58,12 @@ namespace controller_interface
             rclcpp::Publisher<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _pub_canusb;
 
             //controllerへ
-            rclcpp::Publisher<controller_interface_msg::msg::Convergence>::SharedPtr _pub_convergence;
             rclcpp::Publisher<controller_interface_msg::msg::Pole>::SharedPtr _pub_scrn_pole;
 
-            //各nodeへリスタートと手自動の切り替えをpub
+            //各nodeと共有
             rclcpp::Publisher<controller_interface_msg::msg::BaseControl>::SharedPtr _pub_base_control;
+            rclcpp::Publisher<controller_interface_msg::msg::Convergence>::SharedPtr _pub_convergence;
+            rclcpp::Publisher<controller_interface_msg::msg::RemainingRing>::SharedPtr _pub_remaining_ring;
 
             //gazebo_simulator用のpub
             rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr _pub_gazebo;
@@ -92,11 +81,8 @@ namespace controller_interface
             //controllerからのcallback
             void callback_pad_main(const controller_interface_msg::msg::Pad::SharedPtr msg);
             void callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg);
-            void callback_state_num_RR(const std_msgs::msg::String::SharedPtr msg);
             void callback_initial_state(const std_msgs::msg::String::SharedPtr msg);
-            
-            void callback_pad_sub(const controller_interface_msg::msg::Pad::SharedPtr msg);
-            void callback_pole(const controller_interface_msg::msg::Pole::SharedPtr msg);
+            void callback_pole_share(const controller_interface_msg::msg::Pole::SharedPtr msg);
 
             //mainからのcallback
             void callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg);
@@ -115,16 +101,14 @@ namespace controller_interface
             void _recv_callback();
 
             void _recv_joy_main(const unsigned char data[16]);
-            void _recv_joy_sub(const unsigned char data[16]);
             void _recv_pole(const unsigned char data[11]);
             void _recv_start(const unsigned char data[1]);
+            void _recv_er_robot_state(const unsigned char data[2]);
             
             //base_control用
             bool is_reset = false;
             bool is_emergency = false;
             bool is_move_autonomous = false;
-            bool is_injection_autonomous = false;
-            int injection_mec = 0;
             std::string initial_state = "";
 
             //convergence用
@@ -138,12 +122,9 @@ namespace controller_interface
             const float manual_linear_max_vel;
             const float manual_angular_max_vel;
             const float manual_injection_max_vel;
-            const float defalt_pitch;
             const bool defalt_restart_flag;
             const bool defalt_move_autonomous_flag;
-            const bool defalt_injection_autonomous_flag;
             const bool defalt_emergency_flag;
-            const bool defalt_injection_mec;
 
             const bool defalt_spline_convergence;
             const bool defalt_injection_calculator0_convergence;
@@ -151,14 +132,21 @@ namespace controller_interface
             const bool defalt_injection0_convergence;
             const bool defalt_injection1_convergence;
 
+            const int16_t can_emergency_id;
+            const int16_t can_heartbeat_id;
+            const int16_t can_restart_id;
+            const int16_t can_linear_id;
+            const int16_t can_angular_id;
+            const int16_t can_button_id;
+
+            const std::string  er_pc;
+            const std::string  rr_pc;
+
             //udp初期化用
-            const int udp_port_pole_execution;
-            const int udp_port_state_num_er;
-            const int udp_port_state_num_rr;
+            const int udp_port_state;
             const int udp_port_pole;
 
             bool start_er_main;
-            bool start_er_sub;
             bool start_rr_main;
 
             bool pole_a[11];
@@ -178,8 +166,8 @@ namespace controller_interface
             super_command command;
 
             RecvUDP joy_main;
-            RecvUDP joy_sub;
             RecvUDP pole;
             RecvUDP restat_flag;
+            RecvUDP er_robot_state;
     };
 }

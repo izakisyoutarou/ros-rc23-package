@@ -4,9 +4,6 @@
 
 using namespace utils;
 
-#define IP_ER_PC "192.168.1.2"
-#define IP_RR_PC "192.168.1.3"
-
 namespace controller_interface
 {
     using std::string;
@@ -26,19 +23,19 @@ namespace controller_interface
         dtor(get_parameter("injection_max_vel").as_double()),
         dtor(get_parameter("injection_max_acc").as_double()),
         dtor(get_parameter("injection_max_dec").as_double()) ),
+
         joy_main(get_parameter("port.joy_main").as_int()),
-        joy_sub(get_parameter("port.joy_sub").as_int()),
-        pole(get_parameter("udp_port_pole_execution").as_int()),
+        pole(get_parameter("port.pole_share").as_int()),
         restat_flag(get_parameter("port.start_flag").as_int()),
-        defalt_pitch(static_cast<float>(get_parameter("defalt_pitch").as_double())),
+        er_robot_state(get_parameter("port.er_robot_state").as_int()),
+
         manual_linear_max_vel(static_cast<float>(get_parameter("linear_max_vel").as_double())),
         manual_angular_max_vel(dtor(static_cast<float>(get_parameter("angular_max_vel").as_double()))),
         manual_injection_max_vel(dtor(static_cast<float>(get_parameter("injection_max_vel").as_double()))),
+
         defalt_restart_flag(get_parameter("defalt_restart_flag").as_bool()),
         defalt_emergency_flag(get_parameter("defalt_emergency_flag").as_bool()),
         defalt_move_autonomous_flag(get_parameter("defalt_move_autonomous_flag").as_bool()),
-        defalt_injection_autonomous_flag(get_parameter("defalt_injection_autonomous_flag").as_bool()),
-        defalt_injection_mec(get_parameter("defalt_injection_mec").as_int()),
 
         defalt_spline_convergence(get_parameter("defalt_spline_convergence").as_bool()),
         defalt_injection_calculator0_convergence(get_parameter("defalt_injection_calculator0_convergence").as_bool()),
@@ -46,10 +43,18 @@ namespace controller_interface
         defalt_injection0_convergence(get_parameter("defalt_injection0_convergence").as_bool()),
         defalt_injection1_convergence(get_parameter("defalt_injection1_convergence").as_bool()),
         
-        udp_port_pole_execution(get_parameter("udp_port_pole_execution").as_int()),
-        udp_port_state_num_er(get_parameter("udp_port_state_num_er").as_int()),
-        udp_port_state_num_rr(get_parameter("udp_port_state_num_rr").as_int()),
-        udp_port_pole(get_parameter("udp_port_pole").as_int())
+        udp_port_state(get_parameter("port.robot_state").as_int()),
+        udp_port_pole(get_parameter("port.pole_share").as_int()),
+
+        can_emergency_id(get_parameter("canid.emergency").as_int()),
+        can_heartbeat_id(get_parameter("canid.heartbeat").as_int()),
+        can_restart_id(get_parameter("canid.restart").as_int()),
+        can_linear_id(get_parameter("canid.linear").as_int()),
+        can_angular_id(get_parameter("canid.angular").as_int()),
+        can_button_id(get_parameter("canid.main_digital_button").as_int()),
+
+        er_pc(get_parameter("ip.er_pc").as_string()),
+        rr_pc(get_parameter("ip.rr_pc").as_string())
         {
             const auto heartbeat_ms = this->get_parameter("heartbeat_ms").as_int();
             const auto convergence_ms = this->get_parameter("convergence_ms").as_int();
@@ -67,28 +72,16 @@ namespace controller_interface
                 std::bind(&SmartphoneGamepad::callback_state_num_ER, this, std::placeholders::_1)
             );
 
-            _sub_state_num_RR = this->create_subscription<std_msgs::msg::String>(
-                "state_num_RR",
-                _qos,
-                std::bind(&SmartphoneGamepad::callback_state_num_RR, this, std::placeholders::_1)
-            );
-
             _sub_initial_state = this->create_subscription<std_msgs::msg::String>(
                 "initial_state",
                 _qos,
                 std::bind(&SmartphoneGamepad::callback_initial_state, this, std::placeholders::_1)
             );
 
-            _sub_pad_sub = this->create_subscription<controller_interface_msg::msg::Pad>(
-                "pad_sub",
-                _qos,
-                std::bind(&SmartphoneGamepad::callback_pad_sub, this, std::placeholders::_1)
-            );
-
-            _sub_pole = this->create_subscription<controller_interface_msg::msg::Pole>(
+            _sub_pole_share = this->create_subscription<controller_interface_msg::msg::Pole>(
                 "pole",
                 _qos,
-                std::bind(&SmartphoneGamepad::callback_pole, this, std::placeholders::_1)
+                std::bind(&SmartphoneGamepad::callback_pole_share, this, std::placeholders::_1)
             );
 
             //mainからsub
@@ -128,11 +121,12 @@ namespace controller_interface
             _pub_canusb = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx", _qos);
 
             //controllerへpub
-            _pub_convergence = this->create_publisher<controller_interface_msg::msg::Convergence>("pub_convergence" , _qos);
             _pub_scrn_pole = this->create_publisher<controller_interface_msg::msg::Pole>("scrn_pole", _qos);
 
-            //各nodeへリスタートと手自動の切り替えをpub。
+            //各nodeへ共有。
             _pub_base_control = this->create_publisher<controller_interface_msg::msg::BaseControl>("pub_base_control",_qos);
+            _pub_convergence = this->create_publisher<controller_interface_msg::msg::Convergence>("pub_convergence" , _qos);
+            _pub_remaining_ring = this->create_publisher<controller_interface_msg::msg::RemainingRing>("remaining_ring", _qos);
 
             //gazebo用のpub
             _pub_gazebo = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", _qos);
@@ -142,19 +136,15 @@ namespace controller_interface
             msg_base_control->is_restart = defalt_restart_flag;
             msg_base_control->is_emergency = defalt_emergency_flag;
             msg_base_control->is_move_autonomous = defalt_move_autonomous_flag;
-            msg_base_control->is_injection_autonomous = defalt_injection_autonomous_flag;
-            msg_base_control->injection_mec = defalt_injection_mec;
             msg_base_control->initial_state = "O";
             this->is_reset = defalt_restart_flag;
             this->is_emergency = defalt_emergency_flag;
             this->is_move_autonomous = defalt_move_autonomous_flag;
-            this->is_injection_autonomous = defalt_injection_autonomous_flag;
-            this->injection_mec = defalt_injection_mec;
             this->initial_state = "O";
             _pub_base_control->publish(*msg_base_control);
 
             auto msg_emergency = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_emergency->canid = 0x000;
+            msg_emergency->canid = can_emergency_id;
             msg_emergency->candlc = 1;
             msg_emergency->candata[0] = defalt_emergency_flag;
             _pub_canusb->publish(*msg_emergency);
@@ -172,7 +162,7 @@ namespace controller_interface
                 std::chrono::milliseconds(heartbeat_ms),
                 [this] {
                     auto msg_heartbeat = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-                    msg_heartbeat->canid = 0x001;
+                    msg_heartbeat->canid = can_heartbeat_id;
                     msg_heartbeat->candlc = 0;
                     _pub_canusb->publish(*msg_heartbeat);
                 }
@@ -218,25 +208,36 @@ namespace controller_interface
         void SmartphoneGamepad::callback_pad_main(const controller_interface_msg::msg::Pad::SharedPtr msg)
         {
             auto msg_restart = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_restart->canid = 0x002;
+            msg_restart->canid = can_restart_id;
             msg_restart->candlc = 0;
 
             auto msg_emergency = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_emergency->canid = 0x000;
+            msg_emergency->canid = can_emergency_id;
             msg_emergency->candlc = 1;
 
             auto msg_btn = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_btn->canid = 0x220;
+            msg_btn->canid = can_button_id;
             msg_btn->candlc = 8;
+
+            auto msg_remaining_ring = std::make_shared<controller_interface_msg::msg::RemainingRing>();
 
             uint8_t _candata_btn[8];
 
             bool robotcontrol_flag = false;//base_control(手自動、緊急、リスタート)が押されたらpubする
             bool flag_restart = false;//resertがtureをpubした後にfalseをpubする
 
-            //r3は足回りの手自動の切り替え。is_move_autonomousを使って、トグルになるようにしてる。ERの上物からもらう必要はない。
-            //ERの上物の場合は、上物の切り替えに当てている。
+            //l2,r2で残弾数管理を行う。シーケンサーの方でtrueだった場合に残弾数が減らされるなどの処理が行われる
+            if(msg->l2)
+            {
+                msg_remaining_ring->is_injection0 = true;
+            }
 
+            if(msg->r2)
+            {
+                msg_remaining_ring->is_injection1 = true;
+            }
+
+            //r3は足回りの手自動の切り替え。is_move_autonomousを使って、トグルになるようにしてる。ERの上物からもらう必要はない。
             if(msg->r3)
             {
                 robotcontrol_flag = true;
@@ -257,9 +258,7 @@ namespace controller_interface
                 robotcontrol_flag = true;
                 flag_restart = true;
                 is_move_autonomous = defalt_move_autonomous_flag;
-                is_injection_autonomous = defalt_injection_autonomous_flag;
                 is_emergency = false;
-                injection_mec = defalt_injection_mec;
                 initial_state = "O";
 
                 is_spline_convergence = defalt_spline_convergence;
@@ -276,8 +275,6 @@ namespace controller_interface
             msg_base_control->is_restart = is_reset;
             msg_base_control->is_emergency = is_emergency;
             msg_base_control->is_move_autonomous = is_move_autonomous;
-            msg_base_control->is_injection_autonomous = is_injection_autonomous;
-            msg_base_control->injection_mec = injection_mec;
             msg_base_control->initial_state = initial_state;
 
             //mainへ緊急を送る代入
@@ -299,7 +296,14 @@ namespace controller_interface
             {
                 _pub_canusb->publish(*msg_btn);
             }
-            if(msg->g)_pub_canusb->publish(*msg_emergency);
+            if(msg->l2 || msg->r2)
+            {
+                _pub_remaining_ring->publish(*msg_remaining_ring);
+            }
+            if(msg->g)
+            {
+                _pub_canusb->publish(*msg_emergency);
+            }
             if(robotcontrol_flag)
             {
                 _pub_base_control->publish(*msg_base_control);            
@@ -316,143 +320,6 @@ namespace controller_interface
             }
         }
 
-        void SmartphoneGamepad::callback_pad_sub(const controller_interface_msg::msg::Pad::SharedPtr msg)
-        {
-            auto msg_restart = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_restart->canid = 0x002;
-            msg_restart->candlc = 0;
-
-            auto msg_emergency = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_emergency->canid = 0x000;
-            msg_emergency->candlc = 1;
-
-            auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_injection->canid = 0x200;
-            msg_injection->candlc = 2;
-
-            auto msg_btn = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_btn->canid = 0x221;
-            msg_btn->candlc = 8;
-
-            auto msg_scrn_pole_restart = std::make_shared<controller_interface_msg::msg::Pole>(); 
-
-            uint8_t _candata_btn[8];
-
-            bool robotcontrol_flag = false;//base_control(手自動、緊急、リスタート)が押されたらpubする
-            bool flag_restart = false;//resertがtureをpubした後にfalseをpubする
-            bool flag_injection0 = false;//左の発射機構の最終射出許可
-            bool flag_injection1 = false;//右の発射機構の最終射出許可
-
-            //r3は足回りの手自動の切り替え。is_move_autonomousを使って、トグルになるようにしてる。ERの上物からもらう必要はない。
-            //ERの上物の場合は、上物の切り替えに当てている。
-
-            if(msg->r3)
-            {
-                robotcontrol_flag = true;
-                if(injection_mec == 0) 
-                {
-                    injection_mec = 1;
-                }
-                else if(injection_mec != 0)  injection_mec = 0;
-            }
-
-            //l3は上物の手自動の切り替え。is_injection_autonomousを使って、トグルになるようにしてる。ERの足回りからもらう必要はない
-            if(msg->l3)
-            {
-                robotcontrol_flag = true;
-                if(is_injection_autonomous == false) is_injection_autonomous = true;
-                else is_injection_autonomous = false;
-            }
-
-            //gは緊急。is_emergencyを使って、トグルになるようにしてる。
-            if(msg->g)
-            {
-                robotcontrol_flag = true;
-                is_emergency = true;
-            }
-
-            //sはリスタート。緊急と手自動のboolをfalseにしてリセットしている。
-            if(msg->s)
-            {
-                msg_scrn_pole_restart->a = false;
-                msg_scrn_pole_restart->b = false;
-                msg_scrn_pole_restart->c = false;
-                msg_scrn_pole_restart->d = false;
-                msg_scrn_pole_restart->e = false;
-                msg_scrn_pole_restart->f = false;
-                msg_scrn_pole_restart->g = false;
-                msg_scrn_pole_restart->h = false;
-                msg_scrn_pole_restart->i = false;
-                msg_scrn_pole_restart->j = false;
-                msg_scrn_pole_restart->k = false;
-            }
-
-            //l2が左、r2が右の発射機構のトリガー。
-            //それぞれ、発射されたら収束がfalseにするようにしている。
-            if(msg->l2)
-            {
-                if(is_spline_convergence && is_injection0_convergence && is_injection_calculator0_convergence)
-                {
-                    flag_injection0 = true;
-                }
-            }
-
-            if(msg->r2)
-            {
-                if(is_spline_convergence && is_injection1_convergence && is_injection_calculator1_convergence)
-                {
-                    flag_injection1 = true;
-                }
-            }
-
-            is_reset = msg->s;
-
-            //basecontrolへの代入
-            auto msg_base_control = std::make_shared<controller_interface_msg::msg::BaseControl>();
-            msg_base_control->is_restart = is_reset;
-            msg_base_control->is_emergency = is_emergency;
-            msg_base_control->is_move_autonomous = is_move_autonomous;
-            msg_base_control->is_injection_autonomous = is_injection_autonomous;
-            msg_base_control->injection_mec = injection_mec;
-
-            //mainへ緊急を送る代入
-            _candata_btn[0] = is_emergency;
-            for(int i=0; i<msg_emergency->candlc; i++) msg_emergency->candata[i] = _candata_btn[i];
-
-            //mainへ射出司令を送る代入
-            _candata_btn[0] = flag_injection0;
-            _candata_btn[1] = flag_injection1;
-            for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata_btn[i];
-
-            //mainへボタン情報を送る代入
-            _candata_btn[0] = msg->a;
-            _candata_btn[1] = msg->b;
-            _candata_btn[2] = msg->y;
-            _candata_btn[3] = msg->x;
-            _candata_btn[4] = msg->right;
-            _candata_btn[5] = msg->down;
-            _candata_btn[6] = msg->left;
-            _candata_btn[7] = msg->up;
-            for(int i=0; i<msg_btn->candlc; i++) msg_btn->candata[i] = _candata_btn[i];
-
-            if(msg->a || msg->b || msg->y || msg->x || msg->right || msg->down || msg->left || msg->up)
-            {
-                _pub_canusb->publish(*msg_btn);
-            }
-            if(msg->g)_pub_canusb->publish(*msg_emergency);
-            if(flag_injection0 || flag_injection1)_pub_canusb->publish(*msg_injection);
-            if(robotcontrol_flag)
-            {
-                _pub_base_control->publish(*msg_base_control);
-            }
-            if(msg->s) _pub_scrn_pole->publish(*msg_scrn_pole_restart);
-            if(flag_restart)
-            {
-                msg_base_control->is_restart = false;
-                _pub_base_control->publish(*msg_base_control);
-            }
-        }
-
         void SmartphoneGamepad::callback_initial_state(const std_msgs::msg::String::SharedPtr msg)
         {
             initial_state = msg->data[0];
@@ -461,19 +328,11 @@ namespace controller_interface
         void SmartphoneGamepad::callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg)
         {
             const unsigned char data[2] = {msg->data[0], msg->data[1]};
-            command.state_num_ER(data, udp_port_state_num_er);
+            command.state_num_ER(data, er_pc,udp_port_state);
         }
 
-        void SmartphoneGamepad::callback_state_num_RR(const std_msgs::msg::String::SharedPtr msg)
+        void SmartphoneGamepad::callback_pole_share(const controller_interface_msg::msg::Pole::SharedPtr msg)
         {
-            const unsigned char data[2] = {msg->data[0], msg->data[1]};
-            command.state_num_RR(data, udp_port_state_num_rr);
-        }
-
-        void SmartphoneGamepad::callback_pole(const controller_interface_msg::msg::Pole::SharedPtr msg)
-        {
-            auto msg_scrn_pole = std::make_shared<controller_interface_msg::msg::Pole>(); 
-            unsigned char pole[11];
             pole_a[0] = msg->a;
             pole_a[1] = msg->b;
             pole_a[2] = msg->c;
@@ -485,53 +344,12 @@ namespace controller_interface
             pole_a[8] = msg->i;
             pole_a[9] = msg->j;
             pole_a[10] = msg->k;
-
-            // msg_scrn_pole->a = pole_a[0];
-            // msg_scrn_pole->b = pole_a[1];
-            // msg_scrn_pole->c = pole_a[2];
-            // msg_scrn_pole->d = pole_a[3];
-            // msg_scrn_pole->e = pole_a[4];
-            // msg_scrn_pole->f = pole_a[5];
-            // msg_scrn_pole->g = pole_a[6];
-            // msg_scrn_pole->h = pole_a[7];
-            // msg_scrn_pole->i = pole_a[8];
-            // msg_scrn_pole->j = pole_a[9];
-            // msg_scrn_pole->k = pole_a[10];
-
-            // pole[0] = static_cast<char>(pole_a[0]);
-            // pole[1] = static_cast<char>(pole_a[1]);
-            // pole[2] = static_cast<char>(pole_a[2]);
-            // pole[3] = static_cast<char>(pole_a[3]);
-            // pole[4] = static_cast<char>(pole_a[4]);
-            // pole[5] = static_cast<char>(pole_a[5]);
-            // pole[6] = static_cast<char>(pole_a[6]);
-            // pole[7] = static_cast<char>(pole_a[7]);
-            // pole[8] = static_cast<char>(pole_a[8]);
-            // pole[9] = static_cast<char>(pole_a[9]);
-            // pole[10] = static_cast<char>(pole_a[10]);
-
-            
-            // command.pole_ER(pole, udp_port_pole);
-            // command.pole_RR(pole, udp_port_pole);
-            // _pub_scrn_pole->publish(*msg_scrn_pole);
-            // send.send(pole, sizeof(pole), IP_RR_PC, udp_port_pole_execution);
         }
 
         void SmartphoneGamepad::pole_integration()
         {
             auto msg_scrn_pole = std::make_shared<controller_interface_msg::msg::Pole>(); 
             unsigned char pole[11];
-            pole[0] = static_cast<char>(pole_a[0]);
-            pole[1] = static_cast<char>(pole_a[1]);
-            pole[2] = static_cast<char>(pole_a[2]);
-            pole[3] = static_cast<char>(pole_a[3]);
-            pole[4] = static_cast<char>(pole_a[4]);
-            pole[5] = static_cast<char>(pole_a[5]);
-            pole[6] = static_cast<char>(pole_a[6]);
-            pole[7] = static_cast<char>(pole_a[7]);
-            pole[8] = static_cast<char>(pole_a[8]);
-            pole[9] = static_cast<char>(pole_a[9]);
-            pole[10] = static_cast<char>(pole_a[10]);
 
             msg_scrn_pole->a = pole_a[0];
             msg_scrn_pole->b = pole_a[1];
@@ -545,30 +363,34 @@ namespace controller_interface
             msg_scrn_pole->j = pole_a[9];
             msg_scrn_pole->k = pole_a[10];
 
-            command.pole_ER(pole, udp_port_pole);
-            command.pole_RR(pole, udp_port_pole);
-            send.send(pole, sizeof(pole), IP_RR_PC, 62000);
+            pole[0] = static_cast<char>(pole_a[0]);
+            pole[1] = static_cast<char>(pole_a[1]);
+            pole[2] = static_cast<char>(pole_a[2]);
+            pole[3] = static_cast<char>(pole_a[3]);
+            pole[4] = static_cast<char>(pole_a[4]);
+            pole[5] = static_cast<char>(pole_a[5]);
+            pole[6] = static_cast<char>(pole_a[6]);
+            pole[7] = static_cast<char>(pole_a[7]);
+            pole[8] = static_cast<char>(pole_a[8]);
+            pole[9] = static_cast<char>(pole_a[9]);
+            pole[10] = static_cast<char>(pole_a[10]);
 
+            send.send(pole, sizeof(pole), er_pc, udp_port_pole);
             _pub_scrn_pole->publish(*msg_scrn_pole);
         }
 
         void SmartphoneGamepad::start_integration()
         {
-            // const unsigned char data[2] = {""};
-            // if(start_er_main && start_er_sub && start_rr_main)
-            // {  
-            //     data[0] = "L";
-            //     data[1] = "0";
-            //     command.state_num_ER(data, udp_port_state_num_er);
-            //     command.state_num_RR(data, udp_port_state_num_rr);
-            //     data[0] = "O";
-            //     data[1] = "\0";
-            //     command.state_num_ER(data, udp_port_state_num_er);
-            //     command.state_num_RR(data, udp_port_state_num_rr);
-            // }
-            // start_er_main = false;
-            // start_er_sub = false;
-            // start_rr_main = false;
+            if(start_er_main && start_rr_main)
+            { 
+                const unsigned char data1[] = "L0";
+                command.state_num_ER(data1, er_pc,udp_port_state);
+                command.state_num_RR(data1, rr_pc,udp_port_state);
+                const unsigned char data2[] = {'A', '\0'};
+                command.state_num_ER(data2, er_pc,udp_port_state);
+            }
+            start_er_main = false;
+            start_rr_main = false;
         }
 
         void SmartphoneGamepad::_recv_callback()
@@ -578,11 +400,6 @@ namespace controller_interface
                 unsigned char data[16];
                 _recv_joy_main(joy_main.data(data, sizeof(data)));
             }
-            if(joy_sub.is_recved())
-            {
-                unsigned char data[16];
-                _recv_joy_sub(joy_sub.data(data, sizeof(data)));
-            }
             if(pole.is_recved())
             {
                 unsigned char data[11];
@@ -591,7 +408,12 @@ namespace controller_interface
             if(restat_flag.is_recved())
             {
                 unsigned char data[1];
-                _recv_pole(pole.data(data, sizeof(data)));
+                _recv_start(restat_flag.data(data, sizeof(data)));
+            }
+            if(er_robot_state.is_recved())
+            {
+                unsigned char data[2];
+                _recv_er_robot_state(er_robot_state.data(data, sizeof(data)));
             }
         }
 
@@ -601,11 +423,11 @@ namespace controller_interface
             memcpy(values, data, sizeof(float)*4);
 
             auto msg_linear = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_linear->canid = 0x100;
+            msg_linear->canid = can_linear_id;
             msg_linear->candlc = 8;
 
             auto msg_angular = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_angular->canid = 0x101;
+            msg_angular->canid = can_angular_id;
             msg_angular->candlc = 4;
 
             auto msg_gazebo = std::make_shared<geometry_msgs::msg::Twist>();
@@ -643,65 +465,6 @@ namespace controller_interface
             }
         }
 
-        void SmartphoneGamepad::_recv_joy_sub(const unsigned char data[16])
-        {
-            float values[4];
-            memcpy(values, data, sizeof(float)*4);
-
-            auto msg_l_elevation_velocity = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_l_elevation_velocity->canid = 0x210;
-            msg_l_elevation_velocity->candlc = 8;
-
-            auto msg_l_yaw = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_l_yaw->canid = 0x211;
-            msg_l_yaw->candlc = 4;
-
-            auto msg_r_elevation_velocity = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_r_elevation_velocity->canid = 0x212;
-            msg_r_elevation_velocity->candlc = 8;
-
-            auto msg_r_yaw = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_r_yaw->canid = 0x213;
-            msg_r_yaw->candlc = 4;
-
-            bool flag_injection_autonomous = false;
-
-            uint8_t _candata_joy[8];
-
-            if(is_injection_autonomous == false)
-            {
-                velPlanner_injection_v.vel(static_cast<double>(-values[0]));
-
-                velPlanner_injection_v.cycle();
-
-                if(injection_mec == 0)
-                {
-                    float_to_bytes(_candata_joy, defalt_pitch);
-                    float_to_bytes(_candata_joy+4, static_cast<float>(velPlanner_injection_v.vel()) * manual_injection_max_vel);
-                    for(int i=0; i<msg_l_elevation_velocity->candlc; i++) msg_l_elevation_velocity->candata[i] = _candata_joy[i];
-
-                    float_to_bytes(_candata_joy, static_cast<float>(atan2(-values[2], values[3])));
-                    for(int i=0; i<msg_l_yaw->candlc; i++) msg_l_yaw->candata[i] = _candata_joy[i];
-
-                    _pub_canusb->publish(*msg_l_elevation_velocity);
-                    _pub_canusb->publish(*msg_l_yaw);
-                }
-                if(injection_mec == 1)
-                {
-                    float_to_bytes(_candata_joy, defalt_pitch);
-                    float_to_bytes(_candata_joy+4, static_cast<float>(velPlanner_injection_v.vel()) * manual_injection_max_vel);
-                    for(int i=0; i<msg_r_elevation_velocity->candlc; i++) msg_r_elevation_velocity->candata[i] = _candata_joy[i];
-
-                    float_to_bytes(_candata_joy, static_cast<float>(atan2(-values[2], values[3])));
-                    for(int i=0; i<msg_r_yaw->candlc; i++) msg_r_yaw->candata[i] = _candata_joy[i];
-
-                    _pub_canusb->publish(*msg_r_elevation_velocity);
-                    _pub_canusb->publish(*msg_r_yaw);
-                }
-                flag_injection_autonomous = true;
-            }
-        }
-
         void SmartphoneGamepad::_recv_pole(const unsigned char data[11])
         {
             pole_a[0] = data[0];
@@ -720,6 +483,12 @@ namespace controller_interface
         void SmartphoneGamepad::_recv_start(const unsigned char data[1])
         {
             start_rr_main = static_cast<bool>(data[0]);
+        }
+
+        void SmartphoneGamepad::_recv_er_robot_state(const unsigned char data[2])
+        {
+            const unsigned char er_robot_state_data[2] = {data[0], data[1]};
+            command.state_num_ER(er_robot_state_data, er_pc,udp_port_state);
         }
 
         void SmartphoneGamepad::callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg)

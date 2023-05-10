@@ -8,7 +8,7 @@
 #include "controller_interface_msg/msg/pad.hpp"
 #include "controller_interface_msg/msg/pole.hpp"
 #include "controller_interface_msg/msg/convergence.hpp"
-#include "controller_interface_msg/msg/remaining_ring.hpp"
+#include "controller_interface_msg/msg/injection.hpp"
 #include "geometry_msgs/msg/twist.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/string.hpp"
@@ -63,7 +63,7 @@ namespace controller_interface
             //各nodeと共有
             rclcpp::Publisher<controller_interface_msg::msg::BaseControl>::SharedPtr _pub_base_control;
             rclcpp::Publisher<controller_interface_msg::msg::Convergence>::SharedPtr _pub_convergence;
-            rclcpp::Publisher<controller_interface_msg::msg::RemainingRing>::SharedPtr _pub_remaining_ring;
+            rclcpp::Publisher<controller_interface_msg::msg::Injection>::SharedPtr _pub_injection;
 
             //gazebo_simulator用のpub
             rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr _pub_gazebo;
@@ -139,8 +139,11 @@ namespace controller_interface
             const int16_t can_angular_id;
             const int16_t can_button_id;
 
-            const std::string  er_pc;
-            const std::string  rr_pc;
+            const std::string er_pc;
+            const std::string rr_pc;
+
+            const std::string initial_pickup_state;
+            const std::string initial_inject_state;
 
             //udp初期化用
             const int udp_port_state;

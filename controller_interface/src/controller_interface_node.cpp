@@ -54,7 +54,10 @@ namespace controller_interface
         can_button_id(get_parameter("canid.main_digital_button").as_int()),
 
         er_pc(get_parameter("ip.er_pc").as_string()),
-        rr_pc(get_parameter("ip.rr_pc").as_string())
+        rr_pc(get_parameter("ip.rr_pc").as_string()),
+
+        initial_pickup_state(get_parameter("initial_pickup_state").as_string()),
+        initial_inject_state(get_parameter("initial_inject_state").as_string())
         {
             const auto heartbeat_ms = this->get_parameter("heartbeat_ms").as_int();
             const auto convergence_ms = this->get_parameter("convergence_ms").as_int();
@@ -126,7 +129,7 @@ namespace controller_interface
             //各nodeへ共有。
             _pub_base_control = this->create_publisher<controller_interface_msg::msg::BaseControl>("pub_base_control",_qos);
             _pub_convergence = this->create_publisher<controller_interface_msg::msg::Convergence>("pub_convergence" , _qos);
-            _pub_remaining_ring = this->create_publisher<controller_interface_msg::msg::RemainingRing>("remaining_ring", _qos);
+            _pub_injection = this->create_publisher<controller_interface_msg::msg::Injection>("injection_completed", _qos);
 
             //gazebo用のpub
             _pub_gazebo = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", _qos);
@@ -219,23 +222,34 @@ namespace controller_interface
             msg_btn->canid = can_button_id;
             msg_btn->candlc = 8;
 
-            auto msg_remaining_ring = std::make_shared<controller_interface_msg::msg::RemainingRing>();
+            auto msg_injection = std::make_shared<controller_interface_msg::msg::Injection>();
 
             uint8_t _candata_btn[8];
 
             bool robotcontrol_flag = false;//base_control(手自動、緊急、リスタート)が押されたらpubする
             bool flag_restart = false;//resertがtureをpubした後にfalseをpubする
 
-            //l2,r2で残弾数管理を行う。シーケンサーの方でtrueだった場合に残弾数が減らされるなどの処理が行われる
-            if(msg->l2)
+            //l1,r1で残弾数に+1する。射出のトリガーが動いたら、残弾数が減っていくが、打ち損じがある場合があるので、その時用
+            if(msg->l1)
             {
-                msg_remaining_ring->is_injection0 = true;
+                msg_injection->mech0 = 1;
             }
 
-            if(msg->r2)
+            if(msg->r1)
             {
-                msg_remaining_ring->is_injection1 = true;
+                msg_injection->mech1 = 1;
             }
+
+            //l2,r2で射出機構をロックする。ロックされた射出機構は次のポール選択で選ばれない。
+            // if(msg->l2)
+            // {
+            //     msg_injection->mech0 = 1;
+            // }
+
+            // if(msg->r2)
+            // {
+            //     msg_injection->mech1 = 1;
+            // }
 
             //r3は足回りの手自動の切り替え。is_move_autonomousを使って、トグルになるようにしてる。ERの上物からもらう必要はない。
             if(msg->r3)
@@ -243,6 +257,11 @@ namespace controller_interface
                 robotcontrol_flag = true;
                 if(is_move_autonomous == false) is_move_autonomous = true;
                 else is_move_autonomous = false;
+            }
+
+            if(msg->l3)
+            {
+                start_er_main = true;
             }
 
             //gは緊急。is_emergencyを使って、トグルになるようにしてる。
@@ -296,10 +315,14 @@ namespace controller_interface
             {
                 _pub_canusb->publish(*msg_btn);
             }
-            if(msg->l2 || msg->r2)
+            if(msg->l1 || msg->r1)
             {
-                _pub_remaining_ring->publish(*msg_remaining_ring);
+                _pub_injection->publish(*msg_injection);
             }
+            // if(msg->l2 || msg->r2)
+            // {
+            //     _pub_injection->publish(*msg_injection);
+            // }
             if(msg->g)
             {
                 _pub_canusb->publish(*msg_emergency);
@@ -345,6 +368,32 @@ namespace controller_interface
             pole_a[9] = msg->j;
             pole_a[10] = msg->k;
         }
+        
+        void SmartphoneGamepad::callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg)
+        {
+            ///mainから射出可能司令のsub。上物の収束状況。
+            is_injection0_convergence = static_cast<bool>(msg->candata[0]);
+            is_injection1_convergence = static_cast<bool>(msg->candata[1]);
+        }
+
+        void SmartphoneGamepad::callback_spline(const std_msgs::msg::Bool::SharedPtr msg)
+        {
+            //spline_pidから足回り収束のsub。足回りの収束状況。
+            if(msg->data == false) is_spline_convergence = true;
+            else is_spline_convergence = false;
+        }
+
+        void SmartphoneGamepad::callback_injection_calculator_0(const std_msgs::msg::Bool::SharedPtr msg)
+        {
+             //injection_calculatorから上モノ指令値計算収束のsub。上物の指令値の収束情報。
+            is_injection_calculator0_convergence = msg->data;
+        }
+
+        void SmartphoneGamepad::callback_injection_calculator_1(const std_msgs::msg::Bool::SharedPtr msg)
+        {
+            //injection_calculatorから上モノ指令値計算収束のsub。上物の指令値の収束情報。
+            is_injection_calculator1_convergence = msg->data;
+        }
 
         void SmartphoneGamepad::pole_integration()
         {
@@ -381,13 +430,18 @@ namespace controller_interface
 
         void SmartphoneGamepad::start_integration()
         {
+            
             if(start_er_main && start_rr_main)
             { 
-                const unsigned char data1[] = "L0";
-                command.state_num_ER(data1, er_pc,udp_port_state);
-                command.state_num_RR(data1, rr_pc,udp_port_state);
-                const unsigned char data2[] = {'A', '\0'};
-                command.state_num_ER(data2, er_pc,udp_port_state);
+                const char* char_ptr = initial_pickup_state.c_str();
+                const unsigned char* pickup = reinterpret_cast<const unsigned char*>(char_ptr);
+                command.state_num_ER(pickup, er_pc,udp_port_state);
+                command.state_num_RR(pickup, rr_pc,udp_port_state);
+
+                const string initial_inject_state_with_null = initial_inject_state + '\0';
+                const char* char_ptr2 = initial_inject_state_with_null.c_str();
+                const unsigned char* inject = reinterpret_cast<const unsigned char*>(char_ptr);
+                command.state_num_ER(inject, er_pc,udp_port_state);
             }
             start_er_main = false;
             start_rr_main = false;
@@ -395,6 +449,7 @@ namespace controller_interface
 
         void SmartphoneGamepad::_recv_callback()
         {
+            RCLCPP_INFO(this->get_logger(), "%d",restat_flag.is_recved());
             if(joy_main.is_recved())
             {
                 unsigned char data[16];
@@ -489,31 +544,5 @@ namespace controller_interface
         {
             const unsigned char er_robot_state_data[2] = {data[0], data[1]};
             command.state_num_ER(er_robot_state_data, er_pc,udp_port_state);
-        }
-
-        void SmartphoneGamepad::callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg)
-        {
-            ///mainから射出可能司令のsub。上物の収束状況。
-            is_injection0_convergence = static_cast<bool>(msg->candata[0]);
-            is_injection1_convergence = static_cast<bool>(msg->candata[1]);
-        }
-
-        void SmartphoneGamepad::callback_spline(const std_msgs::msg::Bool::SharedPtr msg)
-        {
-            //spline_pidから足回り収束のsub。足回りの収束状況。
-            if(msg->data == false) is_spline_convergence = true;
-            else is_spline_convergence = false;
-        }
-
-        void SmartphoneGamepad::callback_injection_calculator_0(const std_msgs::msg::Bool::SharedPtr msg)
-        {
-             //injection_calculatorから上モノ指令値計算収束のsub。上物の指令値の収束情報。
-            is_injection_calculator0_convergence = msg->data;
-        }
-
-        void SmartphoneGamepad::callback_injection_calculator_1(const std_msgs::msg::Bool::SharedPtr msg)
-        {
-            //injection_calculatorから上モノ指令値計算収束のsub。上物の指令値の収束情報。
-            is_injection_calculator1_convergence = msg->data;
         }
 }

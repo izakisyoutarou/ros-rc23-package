@@ -23,7 +23,7 @@ namespace controller_interface
         joy_main(get_parameter("port.joy_main").as_int()),
         pole(get_parameter("port.pole_share").as_int()),
         restat_flag(get_parameter("port.start_flag").as_int()),
-        er_robot_state(get_parameter("port.er_robot_state").as_int()),
+        rr_robot_state(get_parameter("port.rr_robot_state").as_int()),
 
         manual_linear_max_vel(static_cast<float>(get_parameter("linear_max_vel").as_double())),
         manual_angular_max_vel(dtor(static_cast<float>(get_parameter("angular_max_vel").as_double()))),
@@ -418,23 +418,23 @@ namespace controller_interface
             pole[9] = static_cast<char>(pole_a[9]);
             pole[10] = static_cast<char>(pole_a[10]);
 
-            send.send(pole, sizeof(pole), er_pc, udp_port_pole);
+            send.send(pole, sizeof(pole), rr_pc, udp_port_pole);
             _pub_scrn_pole->publish(*msg_scrn_pole);
         }
 
         void SmartphoneGamepad::start_integration()
         {
-            
             if(start_er_main && start_rr_main)
             { 
                 const char* char_ptr = initial_pickup_state.c_str();
                 const unsigned char* pickup = reinterpret_cast<const unsigned char*>(char_ptr);
-                command.state_num_ER(pickup, er_pc,udp_port_state);
-                command.state_num_RR(pickup, rr_pc,udp_port_state);
 
                 const string initial_inject_state_with_null = initial_inject_state + '\0';
                 const char* char_ptr2 = initial_inject_state_with_null.c_str();
-                const unsigned char* inject = reinterpret_cast<const unsigned char*>(char_ptr);
+                const unsigned char* inject = reinterpret_cast<const unsigned char*>(char_ptr2);
+                  
+                command.state_num_ER(pickup, er_pc,udp_port_state);
+                command.state_num_RR(pickup, rr_pc,udp_port_state);
                 command.state_num_ER(inject, er_pc,udp_port_state);
             }
             start_er_main = false;
@@ -443,7 +443,6 @@ namespace controller_interface
 
         void SmartphoneGamepad::_recv_callback()
         {
-            RCLCPP_INFO(this->get_logger(), "%d",restat_flag.is_recved());
             if(joy_main.is_recved())
             {
                 unsigned char data[16];
@@ -459,10 +458,10 @@ namespace controller_interface
                 unsigned char data[1];
                 _recv_start(restat_flag.data(data, sizeof(data)));
             }
-            if(er_robot_state.is_recved())
+            if(rr_robot_state.is_recved())
             {
                 unsigned char data[2];
-                _recv_er_robot_state(er_robot_state.data(data, sizeof(data)));
+                _recv_rr_robot_state(rr_robot_state.data(data, sizeof(data)));
             }
         }
 
@@ -534,9 +533,10 @@ namespace controller_interface
             start_rr_main = static_cast<bool>(data[0]);
         }
 
-        void SmartphoneGamepad::_recv_er_robot_state(const unsigned char data[2])
+        void SmartphoneGamepad::_recv_rr_robot_state(const unsigned char data[2])
         {
-            const unsigned char er_robot_state_data[2] = {data[0], data[1]};
-            command.state_num_ER(er_robot_state_data, er_pc,udp_port_state);
+            // RCLCPP_INFO(this->get_logger(), "%c", data[0]);
+            const unsigned char rr_robot_state_data[2] = {data[0], data[1]};
+            command.state_num_RR(rr_robot_state_data, rr_pc,udp_port_state);
         }
 }

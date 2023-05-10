@@ -103,7 +103,7 @@ namespace controller_interface
             void _recv_joy_main(const unsigned char data[16]);
             void _recv_pole(const unsigned char data[11]);
             void _recv_start(const unsigned char data[1]);
-            void _recv_er_robot_state(const unsigned char data[2]);
+            void _recv_rr_robot_state(const unsigned char data[2]);
             
             //base_control用
             bool is_reset = false;
@@ -167,6 +167,6 @@ namespace controller_interface
             RecvUDP joy_main;
             RecvUDP pole;
             RecvUDP restat_flag;
-            RecvUDP er_robot_state;
+            RecvUDP rr_robot_state;
     };
 }

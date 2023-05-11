@@ -36,6 +36,8 @@ namespace controller_interface
             CONTROLLER_INTERFACE_PUBLIC
             explicit SmartphoneGamepad(const std::string& name_space, const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 
+            void start_integration_async();
+
         private:
             //ER_mainのcontrollerから
             rclcpp::Subscription<controller_interface_msg::msg::Pad>::SharedPtr _sub_pad_main;

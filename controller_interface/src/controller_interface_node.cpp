@@ -1,6 +1,9 @@
 #include "controller_interface/controller_interface_node.hpp"
 #include <sys/time.h>
 #include <sys/types.h>
+#include <chrono>
+#include <iostream>
+#include <future>
 
 using namespace utils;
 
@@ -426,19 +429,26 @@ namespace controller_interface
         {
             if(start_er_main && start_rr_main)
             { 
-                const char* char_ptr = initial_pickup_state.c_str();
-                const unsigned char* pickup = reinterpret_cast<const unsigned char*>(char_ptr);
-
-                const string initial_inject_state_with_null = initial_inject_state + '\0';
-                const char* char_ptr2 = initial_inject_state_with_null.c_str();
-                const unsigned char* inject = reinterpret_cast<const unsigned char*>(char_ptr2);
-                  
-                command.state_num_ER(pickup, er_pc,udp_port_state);
-                command.state_num_RR(pickup, rr_pc,udp_port_state);
-                command.state_num_ER(inject, er_pc,udp_port_state);
+                std::future<void> fooFuture = std::async(std::launch::async, &controller_interface::SmartphoneGamepad::start_integration_async,this);
+                fooFuture.wait();
             }
             start_er_main = false;
             start_rr_main = false;
+        }
+
+        void SmartphoneGamepad::start_integration_async()
+        {
+            const char* char_ptr = initial_pickup_state.c_str();
+            const unsigned char* pickup = reinterpret_cast<const unsigned char*>(char_ptr);
+
+            const string initial_inject_state_with_null = initial_inject_state + '\0';
+            const char* char_ptr2 = initial_inject_state_with_null.c_str();
+            const unsigned char* inject = reinterpret_cast<const unsigned char*>(char_ptr2);
+                  
+            command.state_num_ER(pickup, er_pc,udp_port_state);
+            command.state_num_RR(pickup, rr_pc,udp_port_state);
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            command.state_num_ER(inject, er_pc,udp_port_state);
         }
 
         void SmartphoneGamepad::_recv_callback()

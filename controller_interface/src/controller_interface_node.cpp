@@ -24,9 +24,7 @@ namespace controller_interface
         dtor(get_parameter("angular_max_dec").as_double()) ),
 
         joy_main(get_parameter("port.joy_main").as_int()),
-        pole(get_parameter("port.pole_share").as_int()),
         restat_flag(get_parameter("port.start_flag").as_int()),
-        rr_robot_state(get_parameter("port.rr_robot_state").as_int()),
 
         manual_linear_max_vel(static_cast<float>(get_parameter("linear_max_vel").as_double())),
         manual_angular_max_vel(dtor(static_cast<float>(get_parameter("angular_max_vel").as_double()))),
@@ -79,12 +77,6 @@ namespace controller_interface
                 std::bind(&SmartphoneGamepad::callback_initial_state, this, std::placeholders::_1)
             );
 
-            _sub_pole_share = this->create_subscription<controller_interface_msg::msg::Pole>(
-                "pole",
-                _qos,
-                std::bind(&SmartphoneGamepad::callback_pole_share, this, std::placeholders::_1)
-            );
-
             //mainからsub
             _sub_main_injection_possible = this->create_subscription<socketcan_interface_msg::msg::SocketcanIF>(
                 "can_rx_201",
@@ -120,9 +112,6 @@ namespace controller_interface
 
             //canusbへpub
             _pub_canusb = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx", _qos);
-
-            //controllerへpub
-            _pub_scrn_pole = this->create_publisher<controller_interface_msg::msg::Pole>("scrn_pole", _qos);
 
             //各nodeへ共有。
             _pub_base_control = this->create_publisher<controller_interface_msg::msg::BaseControl>("pub_base_control",_qos);
@@ -189,11 +178,6 @@ namespace controller_interface
                 [this] { _recv_callback(); }
             );
 
-            _pole_timer = this->create_wall_timer(
-                std::chrono::milliseconds(this->get_parameter("pole_ms").as_int()),
-                [this] { pole_integration(); }
-            );
-
             _start_timer = this->create_wall_timer(
                 std::chrono::milliseconds(this->get_parameter("start_flag_ms").as_int()),
                 [this] { start_integration(); }
@@ -229,24 +213,24 @@ namespace controller_interface
             //l1,r1で残弾数に+1する。射出のトリガーが動いたら、残弾数が減っていくが、打ち損じがある場合があるので、その時用
             if(msg->l1)
             {
-                msg_injection->mech0 = 1;
+                msg_injection->is_decrement_pole_m0 = true;
             }
 
             if(msg->r1)
             {
-                msg_injection->mech1 = 1;
+                msg_injection->is_decrement_pole_m1 = true;
             }
 
             //l2,r2で射出機構をロックする。ロックされた射出機構は次のポール選択で選ばれない。
-            // if(msg->l2)
-            // {
-            //     msg_injection->mech0 = 1;
-            // }
+            if(msg->l2)
+            {
+                msg_injection->is_release_m0 = true;
+            }
 
-            // if(msg->r2)
-            // {
-            //     msg_injection->mech1 = 1;
-            // }
+            if(msg->r2)
+            {
+                msg_injection->is_release_m1 = true;
+            }
 
             //r3は足回りの手自動の切り替え。is_move_autonomousを使って、トグルになるようにしてる。ERの上物からもらう必要はない。
             if(msg->r3)
@@ -350,21 +334,6 @@ namespace controller_interface
             const unsigned char data[2] = {msg->data[0], msg->data[1]};
             command.state_num_ER(data, er_pc,udp_port_state);
         }
-
-        void SmartphoneGamepad::callback_pole_share(const controller_interface_msg::msg::Pole::SharedPtr msg)
-        {
-            pole_a[0] = msg->a;
-            pole_a[1] = msg->b;
-            pole_a[2] = msg->c;
-            pole_a[3] = msg->d;
-            pole_a[4] = msg->e;
-            pole_a[5] = msg->f;
-            pole_a[6] = msg->g;
-            pole_a[7] = msg->h;
-            pole_a[8] = msg->i;
-            pole_a[9] = msg->j;
-            pole_a[10] = msg->k;
-        }
         
         void SmartphoneGamepad::callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg)
         {
@@ -390,39 +359,6 @@ namespace controller_interface
         {
             //injection_calculatorから上モノ指令値計算収束のsub。上物の指令値の収束情報。
             is_injection_calculator1_convergence = msg->data;
-        }
-
-        void SmartphoneGamepad::pole_integration()
-        {
-            auto msg_scrn_pole = std::make_shared<controller_interface_msg::msg::Pole>(); 
-            unsigned char pole[11];
-
-            msg_scrn_pole->a = pole_a[0];
-            msg_scrn_pole->b = pole_a[1];
-            msg_scrn_pole->c = pole_a[2];
-            msg_scrn_pole->d = pole_a[3];
-            msg_scrn_pole->e = pole_a[4];
-            msg_scrn_pole->f = pole_a[5];
-            msg_scrn_pole->g = pole_a[6];
-            msg_scrn_pole->h = pole_a[7];
-            msg_scrn_pole->i = pole_a[8];
-            msg_scrn_pole->j = pole_a[9];
-            msg_scrn_pole->k = pole_a[10];
-
-            pole[0] = static_cast<char>(pole_a[0]);
-            pole[1] = static_cast<char>(pole_a[1]);
-            pole[2] = static_cast<char>(pole_a[2]);
-            pole[3] = static_cast<char>(pole_a[3]);
-            pole[4] = static_cast<char>(pole_a[4]);
-            pole[5] = static_cast<char>(pole_a[5]);
-            pole[6] = static_cast<char>(pole_a[6]);
-            pole[7] = static_cast<char>(pole_a[7]);
-            pole[8] = static_cast<char>(pole_a[8]);
-            pole[9] = static_cast<char>(pole_a[9]);
-            pole[10] = static_cast<char>(pole_a[10]);
-
-            send.send(pole, sizeof(pole), rr_pc, udp_port_pole);
-            _pub_scrn_pole->publish(*msg_scrn_pole);
         }
 
         void SmartphoneGamepad::start_integration()
@@ -458,20 +394,10 @@ namespace controller_interface
                 unsigned char data[16];
                 _recv_joy_main(joy_main.data(data, sizeof(data)));
             }
-            if(pole.is_recved())
-            {
-                unsigned char data[11];
-                _recv_pole(pole.data(data, sizeof(data)));
-            }
             if(restat_flag.is_recved())
             {
                 unsigned char data[1];
                 _recv_start(restat_flag.data(data, sizeof(data)));
-            }
-            if(rr_robot_state.is_recved())
-            {
-                unsigned char data[2];
-                _recv_rr_robot_state(rr_robot_state.data(data, sizeof(data)));
             }
         }
 
@@ -523,30 +449,8 @@ namespace controller_interface
             }
         }
 
-        void SmartphoneGamepad::_recv_pole(const unsigned char data[11])
-        {
-            pole_a[0] = data[0];
-            pole_a[1] = data[1];
-            pole_a[2] = data[2];
-            pole_a[3] = data[3];
-            pole_a[4] = data[4];
-            pole_a[5] = data[5];
-            pole_a[6] = data[6];
-            pole_a[7] = data[7];
-            pole_a[8] = data[8];
-            pole_a[9] = data[9];
-            pole_a[10] = data[10];
-        }
-
         void SmartphoneGamepad::_recv_start(const unsigned char data[1])
         {
             start_rr_main = static_cast<bool>(data[0]);
-        }
-
-        void SmartphoneGamepad::_recv_rr_robot_state(const unsigned char data[2])
-        {
-            // RCLCPP_INFO(this->get_logger(), "%c", data[0]);
-            const unsigned char rr_robot_state_data[2] = {data[0], data[1]};
-            command.state_num_RR(rr_robot_state_data, rr_pc,udp_port_state);
         }
 }

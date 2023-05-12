@@ -43,7 +43,6 @@ namespace controller_interface
             rclcpp::Subscription<controller_interface_msg::msg::Pad>::SharedPtr _sub_pad_main;
             rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_state_num_ER;
             rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_initial_state;
-            rclcpp::Subscription<controller_interface_msg::msg::Pole>::SharedPtr _sub_pole_share;
 
             //mainボードから
             rclcpp::Subscription<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _sub_main_injection_possible;
@@ -56,11 +55,10 @@ namespace controller_interface
             rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _sub_injection_calculator_0;
             rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _sub_injection_calculator_1;
 
+            //seq
+
             //CanUsbへ
             rclcpp::Publisher<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _pub_canusb;
-
-            //controllerへ
-            rclcpp::Publisher<controller_interface_msg::msg::Pole>::SharedPtr _pub_scrn_pole;
 
             //各nodeと共有
             rclcpp::Publisher<controller_interface_msg::msg::BaseControl>::SharedPtr _pub_base_control;
@@ -74,7 +72,6 @@ namespace controller_interface
             rclcpp::TimerBase::SharedPtr _pub_heartbeat;
             rclcpp::TimerBase::SharedPtr _pub_timer_convergence;
             rclcpp::TimerBase::SharedPtr _socket_timer;
-            rclcpp::TimerBase::SharedPtr _pole_timer;
             rclcpp::TimerBase::SharedPtr _start_timer;
 
             //QoS
@@ -84,7 +81,6 @@ namespace controller_interface
             void callback_pad_main(const controller_interface_msg::msg::Pad::SharedPtr msg);
             void callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg);
             void callback_initial_state(const std_msgs::msg::String::SharedPtr msg);
-            void callback_pole_share(const controller_interface_msg::msg::Pole::SharedPtr msg);
 
             //mainからのcallback
             void callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg);
@@ -97,13 +93,11 @@ namespace controller_interface
             void callback_injection_calculator_0(const std_msgs::msg::Bool::SharedPtr msg);
             void callback_injection_calculator_1(const std_msgs::msg::Bool::SharedPtr msg);
 
-            void pole_integration();
             void start_integration();
 
             void _recv_callback();
 
             void _recv_joy_main(const unsigned char data[16]);
-            void _recv_pole(const unsigned char data[11]);
             void _recv_start(const unsigned char data[1]);
             void _recv_rr_robot_state(const unsigned char data[2]);
             
@@ -167,8 +161,6 @@ namespace controller_interface
             super_command command;
 
             RecvUDP joy_main;
-            RecvUDP pole;
             RecvUDP restat_flag;
-            RecvUDP rr_robot_state;
     };
 }

@@ -225,23 +225,23 @@ namespace controller_interface
             //l1,r1で残弾数に+1する。射出のトリガーが動いたら、残弾数が減っていくが、打ち損じがある場合があるので、その時用
             if(msg->l1)
             {
-                msg_injection->is_decrement_pole_m0 = true;
+                msg_injection->injectable_rings[0] = 1;
             }
 
             if(msg->r1)
             {
-                msg_injection->is_decrement_pole_m1 = true;
+                msg_injection->injectable_rings[1] = 1;
             }
 
             //l2,r2で射出機構をロックする。ロックされた射出機構は次のポール選択で選ばれない。
             if(msg->l2)
             {
-                msg_injection->is_release_m0 = true;
+                msg_injection->is_release_mech[0] = true;
             }
 
             if(msg->r2)
             {
-                msg_injection->is_release_m1 = true;
+                msg_injection->is_release_mech[1] = true;
             }
 
             //r3は足回りの手自動の切り替え。is_move_autonomousを使って、トグルになるようにしてる。ERの上物からもらう必要はない。
@@ -492,6 +492,7 @@ namespace controller_interface
 
         void SmartphoneGamepad::_recv_start(const unsigned char data[1])
         {
+            RCLCPP_INFO(this->get_logger(), "hello");
             start_rr_main = static_cast<bool>(data[0]);
         }
 }

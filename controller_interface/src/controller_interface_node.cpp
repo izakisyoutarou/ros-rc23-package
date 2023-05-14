@@ -41,13 +41,15 @@ namespace controller_interface
         
         udp_port_state(get_parameter("port.robot_state").as_int()),
         udp_port_pole(get_parameter("port.pole_share").as_int()),
+        udp_port_spline_state(get_parameter("port.spline_state").as_int()),
 
         can_emergency_id(get_parameter("canid.emergency").as_int()),
         can_heartbeat_id(get_parameter("canid.heartbeat").as_int()),
         can_restart_id(get_parameter("canid.restart").as_int()),
         can_linear_id(get_parameter("canid.linear").as_int()),
         can_angular_id(get_parameter("canid.angular").as_int()),
-        can_button_id(get_parameter("canid.main_digital_button").as_int()),
+        can_main_button_id(get_parameter("canid.main_digital_button").as_int()),
+        can_sub_button_id(get_parameter("canid.sub_digital_button").as_int()),
 
         er_pc(get_parameter("ip.er_pc").as_string()),
         rr_pc(get_parameter("ip.rr_pc").as_string()),
@@ -75,6 +77,13 @@ namespace controller_interface
                 "initial_state",
                 _qos,
                 std::bind(&SmartphoneGamepad::callback_initial_state, this, std::placeholders::_1)
+            );
+
+            //controller_subからsub
+            _sub_pad_sub = this->create_subscription<controller_interface_msg::msg::Pad>(
+                "pad_sub",
+                _qos,
+                std::bind(&SmartphoneGamepad::callback_pad_sub, this, std::placeholders::_1)
             );
 
             //mainからsub
@@ -113,10 +122,13 @@ namespace controller_interface
             //canusbへpub
             _pub_canusb = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx", _qos);
 
+            //controller_subへ
+            _pub_timer_start = this->create_publisher<std_msgs::msg::Bool>("start_timer", _qos);
+
             //各nodeへ共有。
             _pub_base_control = this->create_publisher<controller_interface_msg::msg::BaseControl>("pub_base_control",_qos);
             _pub_convergence = this->create_publisher<controller_interface_msg::msg::Convergence>("pub_convergence" , _qos);
-            _pub_injection = this->create_publisher<controller_interface_msg::msg::Injection>("injection_completed", _qos);
+            _pub_injection = this->create_publisher<controller_interface_msg::msg::Injection>("injection_mech", _qos);
 
             //gazebo用のpub
             _pub_gazebo = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", _qos);
@@ -200,7 +212,7 @@ namespace controller_interface
             msg_emergency->candlc = 1;
 
             auto msg_btn = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-            msg_btn->canid = can_button_id;
+            msg_btn->canid = can_main_button_id;
             msg_btn->candlc = 8;
 
             auto msg_injection = std::make_shared<controller_interface_msg::msg::Injection>();
@@ -300,10 +312,10 @@ namespace controller_interface
             {
                 _pub_injection->publish(*msg_injection);
             }
-            // if(msg->l2 || msg->r2)
-            // {
-            //     _pub_injection->publish(*msg_injection);
-            // }
+            if(msg->l2 || msg->r2)
+            {
+                _pub_injection->publish(*msg_injection);
+            }
             if(msg->g)
             {
                 _pub_canusb->publish(*msg_emergency);
@@ -321,6 +333,31 @@ namespace controller_interface
             {
                 msg_base_control->is_restart = false;
                 _pub_base_control->publish(*msg_base_control);
+            }
+        }
+
+        void SmartphoneGamepad::callback_pad_sub(const controller_interface_msg::msg::Pad::SharedPtr msg)
+        {
+            auto msg_btn = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
+            msg_btn->canid = can_sub_button_id;
+            msg_btn->candlc = 8;
+
+            uint8_t _candata_btn[8];
+
+            //mainへボタン情報を送る代入
+            _candata_btn[0] = msg->a;
+            _candata_btn[1] = msg->b;
+            _candata_btn[2] = msg->y;
+            _candata_btn[3] = msg->x;
+            _candata_btn[4] = msg->right;
+            _candata_btn[5] = msg->down;
+            _candata_btn[6] = msg->left;
+            _candata_btn[7] = msg->up;
+            for(int i=0; i<msg_btn->candlc; i++) msg_btn->candata[i] = _candata_btn[i];
+
+            if(msg->a || msg->b || msg->y || msg->x || msg->right || msg->down || msg->left || msg->up)
+            {
+                _pub_canusb->publish(*msg_btn);
             }
         }
 
@@ -364,7 +401,7 @@ namespace controller_interface
         void SmartphoneGamepad::start_integration()
         {
             if(start_er_main && start_rr_main)
-            { 
+            {
                 std::future<void> fooFuture = std::async(std::launch::async, &controller_interface::SmartphoneGamepad::start_integration_async,this);
                 fooFuture.wait();
             }
@@ -374,6 +411,10 @@ namespace controller_interface
 
         void SmartphoneGamepad::start_integration_async()
         {
+            auto msg_timer_start = std::make_shared<std_msgs::msg::Bool>();
+            msg_timer_start->data = true;
+            _pub_timer_start->publish(*msg_timer_start);
+
             const char* char_ptr = initial_pickup_state.c_str();
             const unsigned char* pickup = reinterpret_cast<const unsigned char*>(char_ptr);
 
@@ -382,7 +423,7 @@ namespace controller_interface
             const unsigned char* inject = reinterpret_cast<const unsigned char*>(char_ptr2);
                   
             command.state_num_ER(pickup, er_pc,udp_port_state);
-            command.state_num_RR(pickup, rr_pc,udp_port_state);
+            send.send(pickup, sizeof(pickup), rr_pc, udp_port_spline_state);
             std::this_thread::sleep_for(std::chrono::seconds(1));
             command.state_num_ER(inject, er_pc,udp_port_state);
         }

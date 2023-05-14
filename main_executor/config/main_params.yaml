@@ -39,6 +39,7 @@ launch: #起動パラメータ
       rr_robot_state: 52000
       pole_share: 53000
       start_flag: 54000
+      spline_state: 55000
       robot_state: 57000
       pole_state: 61000
 

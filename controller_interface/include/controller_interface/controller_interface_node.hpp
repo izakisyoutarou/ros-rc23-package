@@ -12,6 +12,7 @@
 #include "geometry_msgs/msg/twist.hpp"
 #include "std_msgs/msg/bool.hpp"
 #include "std_msgs/msg/string.hpp"
+#include "std_msgs/msg/empty.hpp"
 //他のpkg
 #include "utilities/can_utils.hpp"
 #include "utilities/utils.hpp"
@@ -44,6 +45,9 @@ namespace controller_interface
             rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_state_num_ER;
             rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_initial_state;
 
+            //ER_subのcontrollerから
+            rclcpp::Subscription<controller_interface_msg::msg::Pad>::SharedPtr _sub_pad_sub;
+
             //mainボードから
             rclcpp::Subscription<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _sub_main_injection_possible;
             rclcpp::Subscription<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _sub_main_injection_complete;
@@ -55,10 +59,11 @@ namespace controller_interface
             rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _sub_injection_calculator_0;
             rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _sub_injection_calculator_1;
 
-            //seq
-
             //CanUsbへ
             rclcpp::Publisher<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _pub_canusb;
+
+            //controller_subへ
+            rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr _pub_timer_start;
 
             //各nodeと共有
             rclcpp::Publisher<controller_interface_msg::msg::BaseControl>::SharedPtr _pub_base_control;
@@ -77,10 +82,13 @@ namespace controller_interface
             //QoS
             rclcpp::QoS _qos = rclcpp::QoS(10);
             
-            //controllerからのcallback
+            //controller_mainからのcallback
             void callback_pad_main(const controller_interface_msg::msg::Pad::SharedPtr msg);
             void callback_state_num_ER(const std_msgs::msg::String::SharedPtr msg);
             void callback_initial_state(const std_msgs::msg::String::SharedPtr msg);
+
+            //controller_subからのcallback
+            void callback_pad_sub(const controller_interface_msg::msg::Pad::SharedPtr msg);
 
             //mainからのcallback
             void callback_main(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg);
@@ -132,7 +140,8 @@ namespace controller_interface
             const int16_t can_restart_id;
             const int16_t can_linear_id;
             const int16_t can_angular_id;
-            const int16_t can_button_id;
+            const int16_t can_main_button_id;
+            const int16_t can_sub_button_id;
 
             const std::string er_pc;
             const std::string rr_pc;
@@ -143,6 +152,7 @@ namespace controller_interface
             //udp初期化用
             const int udp_port_state;
             const int udp_port_pole;
+            const int udp_port_spline_state;
 
             bool start_er_main;
             bool start_rr_main;

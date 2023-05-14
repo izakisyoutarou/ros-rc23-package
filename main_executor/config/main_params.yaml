@@ -11,8 +11,8 @@ launch: #起動パラメータ
     2nd_initial_pose: [-0.25, -5.7, 1.5708] #2つ目の初期位置[x,y,yaw]
 
     # 自動の並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
-    linear_max_vel: 3.0
-    linear_max_acc: 4.0
+    linear_max_vel: 5.0
+    linear_max_acc: 6.0
     linear_max_dec: 4.0
     linear_max_jer: 0.0
     # 回転  速度[deg/s],加速度[deg/s^2],加減速度[-deg/s^2],躍度[deg/s^3]
@@ -96,8 +96,8 @@ spline_pid_node:
 
     linear_planner_gain: 0.1 #並進速度計画機ゲイン  1.3
     linear_pos_gain: 3.0  #並進位置ズレのゲイン 3.5
-    linear_pos_diff_gain: 0.2
-    linear_pos_integral_gain: 0.02  #並進位置ズレの積分ゲイン
+    linear_pos_diff_gain: 0.4
+    linear_pos_integral_gain: 0.01  #並進位置ズレの積分ゲイン
 
     angular_planner_gain: 1.7 #回転速度計画機ゲイン
     angular_pos_gain: 2.3 #回転位置ズレのゲイン
@@ -153,7 +153,7 @@ RANSAC_localization:
     odom_weight_angler: 1.0e-4
     voxel_size: 0.05
     trial_num: 50
-    inlier_dist_threshold: 0.01
-    inlier_length_threshold: 1.5
+    inlier_dist_threshold: 0.015
+    inlier_length_threshold: 1.1
     tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]
     # tf_laser2robot: [0.1975,0.0,0.0,  3.14159,0.0,0.0]

@@ -63,6 +63,7 @@ controller_interface_node:
 
     interval_ms: 50
     pole_ms: 20
+    start_ms: 100
     
     #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角
     defalt_restart_flag: false

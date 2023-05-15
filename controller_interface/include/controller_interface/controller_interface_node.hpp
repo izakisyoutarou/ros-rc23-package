@@ -74,6 +74,7 @@ namespace controller_interface
             rclcpp::TimerBase::SharedPtr _pub_heartbeat;
             rclcpp::TimerBase::SharedPtr _pub_timer_convergence;
             rclcpp::TimerBase::SharedPtr _socket_timer;
+            rclcpp::TimerBase::SharedPtr _start_timer;
 
             //QoS
             rclcpp::QoS _qos = rclcpp::QoS(10);
@@ -147,6 +148,8 @@ namespace controller_interface
             const int udp_port_spline_state;
 
             bool start_er_main;
+
+            bool start_flag;
 
             //計画機
             VelPlanner velPlanner_linear_x;

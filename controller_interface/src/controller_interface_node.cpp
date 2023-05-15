@@ -186,6 +186,21 @@ namespace controller_interface
                 [this] { _recv_callback(); }
             );
 
+            _start_timer = this->create_wall_timer(
+                std::chrono::milliseconds(this->get_parameter("start_ms").as_int()),
+                [this] { 
+                    if(start_flag)
+                    {
+                        const string initial_inject_state_with_null = initial_inject_state + '\0';
+                        const char* char_ptr2 = initial_inject_state_with_null.c_str();
+                        const unsigned char* inject = reinterpret_cast<const unsigned char*>(char_ptr2);
+
+                        command.state_num_ER(inject, er_pc,udp_port_state);
+                        start_flag = false;
+                    }
+                }
+            );
+
             //計画機
             velPlanner_linear_x.limit(limit_linear);
             velPlanner_linear_y.limit(limit_linear);
@@ -305,8 +320,12 @@ namespace controller_interface
             }
             if(start_er_main)
             {
-                std::future<void> fooFuture = std::async(std::launch::async, &controller_interface::SmartphoneGamepad::start_integration_async,this);
-                fooFuture.wait();
+                const char* char_ptr = initial_pickup_state.c_str();
+                const unsigned char* pickup = reinterpret_cast<const unsigned char*>(char_ptr);
+                  
+                command.state_num_ER(pickup, er_pc,udp_port_state);
+
+                start_flag = true;
                 start_er_main = false;
             }
             if(msg->g)
@@ -401,7 +420,6 @@ namespace controller_interface
             const unsigned char* inject = reinterpret_cast<const unsigned char*>(char_ptr2);
                   
             command.state_num_ER(pickup, er_pc,udp_port_state);
-            std::this_thread::sleep_for(std::chrono::seconds(1));
             command.state_num_ER(inject, er_pc,udp_port_state);
         }
 

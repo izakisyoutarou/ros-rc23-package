@@ -86,7 +86,6 @@ void Sequencer::_subscriber_callback_base_control(const controller_interface_msg
 void Sequencer::_subscriber_callback_convergence(const controller_interface_msg::msg::Convergence::SharedPtr msg){
     if(current_pickup_state == "L0" || current_pickup_state == "L1"){
         if(!pick_assistant && current_move_progress > 0.6){
-            pick_assistant = true;
 
             auto msg_pick_assistant = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
             msg_pick_assistant->canid = can_digital_button_id;
@@ -95,6 +94,8 @@ void Sequencer::_subscriber_callback_convergence(const controller_interface_msg:
             msg_pick_assistant->candata[2] = true; //回収補助機構
             publisher_can->publish(*msg_pick_assistant);
             RCLCPP_INFO(this->get_logger(), "回収補助機構展開");
+
+            pick_assistant = true;
         }
         if(msg->spline_convergence || !judge_convergence.spline_convergence){
             current_pickup_state = "";
@@ -107,9 +108,11 @@ void Sequencer::_subscriber_callback_convergence(const controller_interface_msg:
 
             if(current_rings[0] <= 0 || current_rings[1] <= 0){
                 msg_pickup->candata[7] = true; // 回収・装填
+                RCLCPP_INFO(this->get_logger(), "リングの回収及び装填");
             }
             else{
                 msg_pickup->candata[5] = true; // 回収
+                RCLCPP_INFO(this->get_logger(), "リングの回収");
             }
 
             publisher_can->publish(*msg_pickup);

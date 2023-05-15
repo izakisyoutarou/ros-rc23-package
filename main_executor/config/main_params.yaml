@@ -22,19 +22,30 @@ launch: #起動パラメータ
     angular_max_jer: 0.0
 
     canid:
+      emergency: 0x000
+      heartbeat: 0x001
+      restart: 0x002
+      linear: 0x100
+      angular: 0x101
       movable: 0x130
       inject: 0x200
       injectable: 0x201
       cancel_inject: 0x202
+      calculatable: 0x203
       main_digital_button: 0x220
       sub_digital_button: 0x221
 
     port:
+      joy_main: 50000
+      rr_robot_state: 52000
+      pole_share: 53000
+      spline_state: 55000
       robot_state: 57000
       pole_state: 61000
-      joy_main: 50000
-      joy_sub: 51000
-      start_flag: 54000
+
+    ip:
+      er_pc: "192.168.1.2"
+      rr_pc: "192.168.1.3"
 
 controller_interface_node:
   ros__parameters:
@@ -46,35 +57,17 @@ controller_interface_node:
     angular_max_vel: 45.0
     angular_max_acc: 180.0
     angular_max_dec: 180.0
-    #手動の上物　速度[deg/s],加速度[deg/s^2],加減速度[-deg/s^2] RC23−ERのdevelopブランチの348行目を参考
-    injection_max_vel: 72.0
-    injection_max_acc: 40.0
-    injection_max_dec: 40.0
 
     heartbeat_ms: 100 #ハートビート周期[ms]
     convergence_ms: 100 #収束周期[ms]
 
-    move_injection_heteronomy_ms: 17 #上物と足回り手動の周期[ms]
-
-    udp_timeout_ms: 20 #UDPのタイムアウト値[ms]
     interval_ms: 50
     pole_ms: 20
-    start_flag_ms: 100
-
-    #erのcontroller_interfaceのcontroller_itnerfaceにpole情報を送るUDPのポート番号。また、受け取る番号
-    udp_port_pole_execution: 53000
-
-    udp_port_state_num_er: 57000 #
-    udp_port_state_num_rr: 60000 #
-    udp_port_pole: 61000 #
-
+    
     #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角
     defalt_restart_flag: false
     defalt_emergency_flag: true
     defalt_move_autonomous_flag: true
-    defalt_injection_autonomous_flag: true
-    defalt_injection_mec: 1
-    defalt_pitch: 45.0
 
     #収束の初期値
     defalt_spline_convergence: false
@@ -83,6 +76,8 @@ controller_interface_node:
     defalt_injection0_convergence: false
     defalt_injection1_convergence: false
 
+    initial_pickup_state: "L0"
+    initial_inject_state: "A"
 
 sequencer_node:
   ros__parameters:

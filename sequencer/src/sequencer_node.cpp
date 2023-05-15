@@ -117,7 +117,6 @@ void Sequencer::_subscriber_callback_convergence(const controller_interface_msg:
 
             publisher_can->publish(*msg_pickup);
 
-
             // 射出可能リング数の更新
             current_rings = {max_rings, max_rings};
             auto msg_rings = std::make_shared<controller_interface_msg::msg::Injection>();
@@ -166,56 +165,62 @@ void Sequencer::_subscriber_callback_injection(const controller_interface_msg::m
 }
 
 void Sequencer::_subscriber_callback_pole(const std_msgs::msg::String::SharedPtr msg){
+    auto msg_pole = std::make_shared<std_msgs::msg::String>();
+
+    // 射出機構の優先順位を算出
+    array<int,2> mech_priority = {11,11};
+    int count = 0;
+    for(const auto &pole : aimable_poles_m0){
+        if(pole == msg->data){
+            mech_priority[0] = count;
+            break;
+        }
+        count++;
+    }
+    count = 0;
+    for(const auto &pole : aimable_poles_m1){
+        if(pole == msg->data){
+            mech_priority[1] = count;
+            break;
+        }
+        count++;
+    }
+
     // 狙っている射出機構がロック状態であればそれを射出させる
-    if(msg->data == aiming_pole[0] && is_mech_locking[0]){
+    if(mech_priority[0] < 11 && msg->data == aiming_pole[0] && is_mech_locking[0]){
         is_mech_locking[0] = true;
         aiming_pole[0] = msg->data;
         inject_flag[0] = true;
+        msg_pole->data = msg->data;
+        publisher_pole_m0->publish(*msg_pole);
         return;
     }
-    else if(msg->data == aiming_pole[1] && is_mech_locking[1]){
+    else if(mech_priority[1] < 11 && msg->data == aiming_pole[1] && is_mech_locking[1]){
         is_mech_locking[1] = true;
         aiming_pole[1] = msg->data;
         inject_flag[1] = true;
+        msg_pole->data = msg->data;
+        publisher_pole_m1->publish(*msg_pole);
         return;
     }
 
     // 狙っている射出機構がない場合
-    array<int,2> mech_priority = {11,11};
-    if(!is_mech_locking[0]){
-        int count = 0;
-        for(const auto &pole : aimable_poles_m0){
-            if(pole == msg->data){
-                mech_priority[0] = count;
-                break;
-            }
-            count++;
-        }
-    }
-    if(!is_mech_locking[1]){
-        int count = 0;
-        for(const auto &pole : aimable_poles_m1){
-            if(pole == msg->data){
-                mech_priority[1] = count;
-                break;
-            }
-            count++;
-        }
-    }
-
-    if(mech_priority[0] < 11 && mech_priority[0] <= mech_priority[1]){  // 優先順位が等しい場合は機構0を優先する
+    if(!is_mech_locking[0] && mech_priority[0] < 11 && (mech_priority[0] <= mech_priority[1] || is_mech_locking[1])){  // 優先順位が等しい場合は機構0を優先する
         is_mech_locking[0] = true;
         aiming_pole[0] = msg->data;
         inject_flag[0] = true;
+        msg_pole->data = msg->data;
+        publisher_pole_m0->publish(*msg_pole);
         return;
     }
-    else if(mech_priority[1] < 11){
+    else if(!is_mech_locking[1] && mech_priority[1] < 11){
         is_mech_locking[1] = true;
         aiming_pole[1] = msg->data;
         inject_flag[1] = true;
+        msg_pole->data = msg->data;
+        publisher_pole_m1->publish(*msg_pole);
         return;
     }
-
 
 }
 
@@ -291,13 +296,16 @@ void Sequencer::_recv_robot_state(const unsigned char data[2]){
 
     // プリント
     for(const auto pole: aimable_poles_m0){
-        cout << pole;
+        cout << pole << " ";
     }
-    cout << "機構0" << endl;
+    cout << " : 機構0" << endl;
     for(const auto pole: aimable_poles_m1){
-        cout << pole;
+        cout << pole << " ";
     }
-    cout << "機構1" << endl;
+    cout << " : 機構1" << endl;
+
+    is_mech_locking[0] = false;
+    is_mech_locking[1] = false;
 
     if(current_pickup_state != "L0" && current_pickup_state != "L1"){
         msg_move_node->data = current_inject_state;

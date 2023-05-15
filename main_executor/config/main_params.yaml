@@ -103,7 +103,7 @@ spline_pid_node:
     angular_pos_gain: 2.3 #回転位置ズレのゲイン
     angular_pos_integral_gain: 0.03  #回転位置ズレの積分ゲイン 0.01
 
-    linear_pos_tolerance: 0.015  #並進到達位置の許容誤差[m]
+    linear_pos_tolerance: 0.03  #並進到達位置の許容誤差[m]
     angular_pos_tolerance: 1.0  #回転到達位置の許容誤差[deg]
 
 spline_trajectories_node:

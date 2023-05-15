@@ -8,10 +8,11 @@ launch: #起動パラメータ
 /**:  #ワイルドカード(ここのパラメータは全ノードから読める: <名前に注意>)
   ros__parameters:
     initial_pose: [-5.45, 0.3, 0.0]  #初期位置[x,y,yaw]
-    2nd_initial_pose: [-0.25, -5.7, 1.5708] #2つ目の初期位置[x,y,yaw]
+    2nd_initial_pose: [-5.45, 0.3, 0.0] #2つ目の初期位置[x,y,yaw]
+    tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]
 
     # 自動の並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
-    linear_max_vel: 5.0
+    linear_max_vel: 3.0
     linear_max_acc: 6.0
     linear_max_dec: 4.0
     linear_max_jer: 0.0
@@ -150,5 +151,3 @@ RANSAC_localization:
     trial_num: 50
     inlier_dist_threshold: 0.015
     inlier_length_threshold: 0.4
-    tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]
-    # tf_laser2robot: [0.1975,0.0,0.0,  3.14159,0.0,0.0]

@@ -299,11 +299,7 @@ namespace controller_interface
             {
                 _pub_canusb->publish(*msg_btn);
             }
-            if(msg->l1 || msg->r1)
-            {
-                _pub_injection->publish(*msg_injection);
-            }
-            if(msg->l2 || msg->r2)
+            if(msg->l1 || msg->r1 || msg->l2 || msg->r2)
             {
                 _pub_injection->publish(*msg_injection);
             }

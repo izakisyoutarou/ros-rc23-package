@@ -154,6 +154,6 @@ RANSAC_localization:
     voxel_size: 0.05
     trial_num: 50
     inlier_dist_threshold: 0.015
-    inlier_length_threshold: 1.1
+    inlier_length_threshold: 0.4
     tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]
     # tf_laser2robot: [0.1975,0.0,0.0,  3.14159,0.0,0.0]

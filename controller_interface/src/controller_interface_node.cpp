@@ -24,7 +24,6 @@ namespace controller_interface
         dtor(get_parameter("angular_max_dec").as_double()) ),
 
         joy_main(get_parameter("port.joy_main").as_int()),
-        restat_flag(get_parameter("port.start_flag").as_int()),
 
         manual_linear_max_vel(static_cast<float>(get_parameter("linear_max_vel").as_double())),
         manual_angular_max_vel(dtor(static_cast<float>(get_parameter("angular_max_vel").as_double()))),
@@ -122,9 +121,6 @@ namespace controller_interface
             //canusbへpub
             _pub_canusb = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx", _qos);
 
-            //controller_subへ
-            _pub_timer_start = this->create_publisher<std_msgs::msg::Bool>("start_timer", _qos);
-
             //各nodeへ共有。
             _pub_base_control = this->create_publisher<controller_interface_msg::msg::BaseControl>("pub_base_control",_qos);
             _pub_convergence = this->create_publisher<controller_interface_msg::msg::Convergence>("pub_convergence" , _qos);
@@ -188,11 +184,6 @@ namespace controller_interface
             _socket_timer = this->create_wall_timer(
                 std::chrono::milliseconds(this->get_parameter("interval_ms").as_int()),
                 [this] { _recv_callback(); }
-            );
-
-            _start_timer = this->create_wall_timer(
-                std::chrono::milliseconds(this->get_parameter("start_flag_ms").as_int()),
-                [this] { start_integration(); }
             );
 
             //計画機
@@ -316,6 +307,12 @@ namespace controller_interface
             {
                 _pub_injection->publish(*msg_injection);
             }
+            if(start_er_main)
+            {
+                std::future<void> fooFuture = std::async(std::launch::async, &controller_interface::SmartphoneGamepad::start_integration_async,this);
+                fooFuture.wait();
+                start_er_main = false;
+            }
             if(msg->g)
             {
                 _pub_canusb->publish(*msg_emergency);
@@ -398,23 +395,8 @@ namespace controller_interface
             is_injection_calculator1_convergence = msg->data;
         }
 
-        void SmartphoneGamepad::start_integration()
-        {
-            if(start_er_main && start_rr_main)
-            {
-                std::future<void> fooFuture = std::async(std::launch::async, &controller_interface::SmartphoneGamepad::start_integration_async,this);
-                fooFuture.wait();
-            }
-            start_er_main = false;
-            start_rr_main = false;
-        }
-
         void SmartphoneGamepad::start_integration_async()
         {
-            auto msg_timer_start = std::make_shared<std_msgs::msg::Bool>();
-            msg_timer_start->data = true;
-            _pub_timer_start->publish(*msg_timer_start);
-
             const char* char_ptr = initial_pickup_state.c_str();
             const unsigned char* pickup = reinterpret_cast<const unsigned char*>(char_ptr);
 
@@ -423,7 +405,6 @@ namespace controller_interface
             const unsigned char* inject = reinterpret_cast<const unsigned char*>(char_ptr2);
                   
             command.state_num_ER(pickup, er_pc,udp_port_state);
-            send.send(pickup, sizeof(pickup), rr_pc, udp_port_spline_state);
             std::this_thread::sleep_for(std::chrono::seconds(1));
             command.state_num_ER(inject, er_pc,udp_port_state);
         }
@@ -434,11 +415,6 @@ namespace controller_interface
             {
                 unsigned char data[16];
                 _recv_joy_main(joy_main.data(data, sizeof(data)));
-            }
-            if(restat_flag.is_recved())
-            {
-                unsigned char data[1];
-                _recv_start(restat_flag.data(data, sizeof(data)));
             }
         }
 
@@ -488,11 +464,5 @@ namespace controller_interface
 
                 flag_move_autonomous = true;
             }
-        }
-
-        void SmartphoneGamepad::_recv_start(const unsigned char data[1])
-        {
-            RCLCPP_INFO(this->get_logger(), "hello");
-            start_rr_main = static_cast<bool>(data[0]);
         }
 }

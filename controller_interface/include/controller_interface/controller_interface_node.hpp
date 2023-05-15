@@ -62,9 +62,6 @@ namespace controller_interface
             //CanUsbへ
             rclcpp::Publisher<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _pub_canusb;
 
-            //controller_subへ
-            rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr _pub_timer_start;
-
             //各nodeと共有
             rclcpp::Publisher<controller_interface_msg::msg::BaseControl>::SharedPtr _pub_base_control;
             rclcpp::Publisher<controller_interface_msg::msg::Convergence>::SharedPtr _pub_convergence;
@@ -77,7 +74,6 @@ namespace controller_interface
             rclcpp::TimerBase::SharedPtr _pub_heartbeat;
             rclcpp::TimerBase::SharedPtr _pub_timer_convergence;
             rclcpp::TimerBase::SharedPtr _socket_timer;
-            rclcpp::TimerBase::SharedPtr _start_timer;
 
             //QoS
             rclcpp::QoS _qos = rclcpp::QoS(10);
@@ -101,13 +97,9 @@ namespace controller_interface
             void callback_injection_calculator_0(const std_msgs::msg::Bool::SharedPtr msg);
             void callback_injection_calculator_1(const std_msgs::msg::Bool::SharedPtr msg);
 
-            void start_integration();
-
             void _recv_callback();
 
             void _recv_joy_main(const unsigned char data[16]);
-            void _recv_start(const unsigned char data[1]);
-            void _recv_rr_robot_state(const unsigned char data[2]);
             
             //base_control用
             bool is_reset = false;
@@ -155,9 +147,6 @@ namespace controller_interface
             const int udp_port_spline_state;
 
             bool start_er_main;
-            bool start_rr_main;
-
-            bool pole_a[11];
 
             //計画機
             VelPlanner velPlanner_linear_x;
@@ -171,6 +160,5 @@ namespace controller_interface
             super_command command;
 
             RecvUDP joy_main;
-            RecvUDP restat_flag;
     };
 }

@@ -39,7 +39,6 @@ launch: #起動パラメータ
       joy_main: 50000
       rr_robot_state: 52000
       pole_share: 53000
-      start_flag: 54000
       spline_state: 55000
       robot_state: 57000
       pole_state: 61000
@@ -64,7 +63,6 @@ controller_interface_node:
 
     interval_ms: 50
     pole_ms: 20
-    start_flag_ms: 100
     
     #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角
     defalt_restart_flag: false

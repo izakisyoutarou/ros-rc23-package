@@ -3,6 +3,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <std_msgs/msg/string.hpp>
 #include <std_msgs/msg/empty.hpp>
+#include <std_msgs/msg/float64.hpp>
 #include "socketcan_interface_msg/msg/socketcan_if.hpp"
 #include "controller_interface_msg/msg/base_control.hpp"
 #include "controller_interface_msg/msg/convergence.hpp"
@@ -28,6 +29,7 @@ private:
     rclcpp::Subscription<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _subscription_calculatable;
     rclcpp::Subscription<controller_interface_msg::msg::Injection>::SharedPtr _subscription_injected;
     rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _subscription_pole;
+    rclcpp::Subscription<std_msgs::msg::Float64>::SharedPtr _subscription_move_progress;
 
     void _subscriber_callback_base_control(const controller_interface_msg::msg::BaseControl::SharedPtr msg);
     void _subscriber_callback_convergence(const controller_interface_msg::msg::Convergence::SharedPtr msg);
@@ -35,6 +37,7 @@ private:
     void _subscriber_callback_calculatable(const socketcan_interface_msg::msg::SocketcanIF::SharedPtr msg);
     void _subscriber_callback_injection(const controller_interface_msg::msg::Injection::SharedPtr msg);
     void _subscriber_callback_pole(const std_msgs::msg::String::SharedPtr msg);
+    void _subscriber_callback_move_progress(const std_msgs::msg::Float64::SharedPtr msg);
     void _recv_callback();
     void _recv_robot_state(const unsigned char data[2]);
     void cancel_inject(const bool mech0, const bool mech1);
@@ -76,7 +79,8 @@ private:
     std::string current_inject_state;
     std::string initial_state;
 
-
+    double current_move_progress = 0.0;
+    bool pick_assistant = false;
 };
 
 }  // namespace sequencer

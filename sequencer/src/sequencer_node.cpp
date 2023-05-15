@@ -56,6 +56,11 @@ aimable_poles_atC_file_path(ament_index_cpp::get_package_share_directory("main_e
         _qos,
         std::bind(&Sequencer::_subscriber_callback_pole, this, std::placeholders::_1)
     );
+    _subscription_move_progress = this->create_subscription<std_msgs::msg::Float64>(
+        "move_progress",
+        _qos,
+        std::bind(&Sequencer::_subscriber_callback_move_progress, this, std::placeholders::_1)
+    );
 
     _socket_timer = this->create_wall_timer(
         std::chrono::milliseconds(this->get_parameter("interval_ms").as_int()),
@@ -80,8 +85,20 @@ void Sequencer::_subscriber_callback_base_control(const controller_interface_msg
 
 void Sequencer::_subscriber_callback_convergence(const controller_interface_msg::msg::Convergence::SharedPtr msg){
     if(current_pickup_state == "L0" || current_pickup_state == "L1"){
+        if(!pick_assistant && current_move_progress > 0.6){
+            pick_assistant = true;
+
+            auto msg_pick_assistant = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
+            msg_pick_assistant->canid = can_digital_button_id;
+            msg_pick_assistant->candlc = 8;
+
+            msg_pick_assistant->candata[2] = true; //回収補助機構
+            publisher_can->publish(*msg_pick_assistant);
+            RCLCPP_INFO(this->get_logger(), "回収補助機構展開");
+        }
         if(msg->spline_convergence || !judge_convergence.spline_convergence){
             current_pickup_state = "";
+            pick_assistant = false;
 
             // 回収もしくは回収・装填
             auto msg_pickup = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
@@ -161,30 +178,35 @@ void Sequencer::_subscriber_callback_pole(const std_msgs::msg::String::SharedPtr
     }
 
     // 狙っている射出機構がない場合
-    array<int,2> mech_priority = {-1,-1};
-
+    array<int,2> mech_priority = {11,11};
     if(!is_mech_locking[0]){
         int count = 0;
         for(const auto &pole : aimable_poles_m0){
-            if(pole == msg->data) mech_priority[0] = count;
+            if(pole == msg->data){
+                mech_priority[0] = count;
+                break;
+            }
             count++;
         }
     }
     if(!is_mech_locking[1]){
         int count = 0;
         for(const auto &pole : aimable_poles_m1){
-            if(pole == msg->data) mech_priority[1] = count;
+            if(pole == msg->data){
+                mech_priority[1] = count;
+                break;
+            }
             count++;
         }
     }
 
-    if(mech_priority[0] > 0 && mech_priority[0] < mech_priority[1]){
+    if(mech_priority[0] < 11 && mech_priority[0] <= mech_priority[1]){  // 優先順位が等しい場合は機構0を優先する
         is_mech_locking[0] = true;
         aiming_pole[0] = msg->data;
         inject_flag[0] = true;
         return;
     }
-    else if(mech_priority[1] > 0){
+    else if(mech_priority[1] < 11){
         is_mech_locking[1] = true;
         aiming_pole[1] = msg->data;
         inject_flag[1] = true;
@@ -192,6 +214,10 @@ void Sequencer::_subscriber_callback_pole(const std_msgs::msg::String::SharedPtr
     }
 
 
+}
+
+void Sequencer::_subscriber_callback_move_progress(const std_msgs::msg::Float64::SharedPtr msg){
+    current_move_progress = msg->data;
 }
 
 void Sequencer::_recv_callback(){

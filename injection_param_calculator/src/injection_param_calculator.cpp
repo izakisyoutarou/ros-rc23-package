@@ -38,7 +38,6 @@ namespace injection_param_calculator{
         }
     void InjectionParamCalculator::callback_injection(const injection_interface_msg::msg::InjectionCommand::SharedPtr msg){
         auto msg_injection = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
-        auto msg_yaw = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
         auto msg_isConvergenced = std::make_shared<std_msgs::msg::Bool>();
         bool isConvergenced = false;
         injection_comand.distance = msg->distance;
@@ -61,7 +60,6 @@ namespace injection_param_calculator{
         if(isConvergenced){
             RCLCPP_INFO(get_logger(),"mech_num: %d 計算が収束しました",mech_num);
             _pub_can->publish(*msg_injection);
-            _pub_can->publish(*msg_yaw);
         }
     }
 

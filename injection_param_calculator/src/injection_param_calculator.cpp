@@ -48,20 +48,14 @@ namespace injection_param_calculator{
         isConvergenced = calculateVelocity();        
         msg_isConvergenced->data = isConvergenced;
 
-        msg_injection->canid = 0x210 + 2*mech_num;
-        msg_injection->candlc = 4;
+        msg_injection->canid = 0x210 + mech_num;
+        msg_injection->candlc = 8;
 
         //送信
-        uint8_t _candata[4];
+        uint8_t _candata[8];
         float_to_bytes(_candata, static_cast<float>(velocity));
+        float_to_bytes(_candata+4, static_cast<float>(injection_comand.direction));
         for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
-
-        msg_yaw->canid = 0x210 + 2*mech_num + 1;
-        msg_yaw->candlc = 4;
-        float_to_bytes(_candata, static_cast<float>(injection_comand.direction));
-        for(int i=0; i<msg_yaw->candlc; i++){
-            msg_yaw->candata[i] = _candata[i];
-        }
         _pub_isConvergenced->publish(*msg_isConvergenced);
 
         if(isConvergenced){

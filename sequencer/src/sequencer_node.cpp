@@ -79,14 +79,16 @@ void Sequencer::_subscriber_callback_base_control(const controller_interface_msg
         current_inject_state = msg->initial_state;
         current_pickup_state = msg->initial_state;
         initial_state = msg->initial_state;
+        pick_assistant = false;
+        current_move_progress = 0.0;
     }
     judge_convergence.spline_convergence = msg->is_move_autonomous;
 }
 
 void Sequencer::_subscriber_callback_convergence(const controller_interface_msg::msg::Convergence::SharedPtr msg){
-    if(current_pickup_state == "L0" || current_pickup_state == "L1"){
-        if(!pick_assistant && current_move_progress > 0.6){
-
+    // cout << "回収状態 : " << current_pickup_state << endl;
+    if((current_pickup_state == "L0" || current_pickup_state == "L1") && current_move_progress > 0.6){
+        if(!pick_assistant){
             auto msg_pick_assistant = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
             msg_pick_assistant->canid = can_digital_button_id;
             msg_pick_assistant->candlc = 8;
@@ -99,7 +101,6 @@ void Sequencer::_subscriber_callback_convergence(const controller_interface_msg:
         }
         if(msg->spline_convergence || !judge_convergence.spline_convergence){
             current_pickup_state = "";
-            pick_assistant = false;
 
             // 回収もしくは回収・装填
             auto msg_pickup = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
@@ -259,6 +260,8 @@ void Sequencer::_recv_robot_state(const unsigned char data[2]){
         current_pickup_state = state;
         msg_move_node->data = state;
         publisher_move_node->publish(*msg_move_node);
+        pick_assistant = false;
+        current_move_progress = 0.0;
 
         cancel_inject(true, true);
         return;

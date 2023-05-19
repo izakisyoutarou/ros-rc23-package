@@ -228,24 +228,13 @@ namespace controller_interface
             bool robotcontrol_flag = false;//base_control(手自動、緊急、リスタート)が押されたらpubする
             bool flag_restart = false;//resertがtureをpubした後にfalseをpubする
 
-            //l1,r1で残弾数に+1する。射出のトリガーが動いたら、残弾数が減っていくが、打ち損じがある場合があるので、その時用
+            //l1,r1で射出機構をロックする。ロックされた射出機構は次のポール選択で選ばれない。
             if(msg->l1)
-            {
-                msg_injection->injectable_rings[0] = 1;
-            }
-
-            if(msg->r1)
-            {
-                msg_injection->injectable_rings[1] = 1;
-            }
-
-            //l2,r2で射出機構をロックする。ロックされた射出機構は次のポール選択で選ばれない。
-            if(msg->l2)
             {
                 msg_injection->is_release_mech[0] = true;
             }
 
-            if(msg->r2)
+            if(msg->r1)
             {
                 msg_injection->is_release_mech[1] = true;
             }
@@ -314,7 +303,7 @@ namespace controller_interface
             {
                 _pub_canusb->publish(*msg_btn);
             }
-            if(msg->l1 || msg->r1 || msg->l2 || msg->r2)
+            if(msg->l1 || msg->r1)
             {
                 _pub_injection->publish(*msg_injection);
             }

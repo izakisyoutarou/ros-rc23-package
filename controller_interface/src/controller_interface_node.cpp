@@ -14,10 +14,14 @@ namespace controller_interface
     SmartphoneGamepad::SmartphoneGamepad(const rclcpp::NodeOptions &options) : SmartphoneGamepad("", options) {}
     SmartphoneGamepad::SmartphoneGamepad(const std::string &name_space, const rclcpp::NodeOptions &options)
         : rclcpp::Node("controller_interface_node", name_space, options),
-        limit_linear(DBL_MAX,
-        get_parameter("linear_max_vel").as_double(),
-        get_parameter("linear_max_acc").as_double(),
-        get_parameter("linear_max_dec").as_double() ),
+        high_limit_linear(DBL_MAX,
+        get_parameter("high_linear_max_vel").as_double(),
+        get_parameter("high_linear_max_acc").as_double(),
+        get_parameter("high_linear_max_dec").as_double() ),
+        slow_limit_linear(DBL_MAX,
+        get_parameter("slow_linear_max_vel").as_double(),
+        get_parameter("slow_linear_max_acc").as_double(),
+        get_parameter("slow_linear_max_dec").as_double() ),
         limit_angular(DBL_MAX,
         dtor(get_parameter("angular_max_vel").as_double()),
         dtor(get_parameter("angular_max_acc").as_double()),
@@ -25,7 +29,8 @@ namespace controller_interface
 
         joy_main(get_parameter("port.joy_main").as_int()),
 
-        manual_linear_max_vel(static_cast<float>(get_parameter("linear_max_vel").as_double())),
+        high_manual_linear_max_vel(static_cast<float>(get_parameter("high_linear_max_vel").as_double())),
+        slow_manual_linear_max_vel(static_cast<float>(get_parameter("slow_linear_max_vel").as_double())),
         manual_angular_max_vel(dtor(static_cast<float>(get_parameter("angular_max_vel").as_double()))),
 
         defalt_restart_flag(get_parameter("defalt_restart_flag").as_bool()),
@@ -130,16 +135,16 @@ namespace controller_interface
             _pub_gazebo = this->create_publisher<geometry_msgs::msg::Twist>("cmd_vel", _qos);
 
             //デフォルト値をpub.。各種、boolに初期値を代入。
-            auto msg_base_control = std::make_shared<controller_interface_msg::msg::BaseControl>();
-            msg_base_control->is_restart = defalt_restart_flag;
-            msg_base_control->is_emergency = defalt_emergency_flag;
-            msg_base_control->is_move_autonomous = defalt_move_autonomous_flag;
-            msg_base_control->initial_state = "O";
+            // auto msg_base_control = std::make_shared<controller_interface_msg::msg::BaseControl>();
+            msg_base_control.is_restart = defalt_restart_flag;
+            msg_base_control.is_emergency = defalt_emergency_flag;
+            msg_base_control.is_move_autonomous = defalt_move_autonomous_flag;
+            msg_base_control.initial_state = "O";
             this->is_reset = defalt_restart_flag;
             this->is_emergency = defalt_emergency_flag;
             this->is_move_autonomous = defalt_move_autonomous_flag;
             this->initial_state = "O";
-            _pub_base_control->publish(*msg_base_control);
+            _pub_base_control->publish(msg_base_control);
 
             auto msg_emergency = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
             msg_emergency->canid = can_emergency_id;
@@ -202,8 +207,12 @@ namespace controller_interface
             );
 
             //計画機
-            velPlanner_linear_x.limit(limit_linear);
-            velPlanner_linear_y.limit(limit_linear);
+            high_velPlanner_linear_x.limit(high_limit_linear);
+            high_velPlanner_linear_y.limit(high_limit_linear);
+
+            slow_velPlanner_linear_x.limit(slow_limit_linear);
+            slow_velPlanner_linear_y.limit(slow_limit_linear);
+
             velPlanner_angular_z.limit(limit_angular);
         }
 
@@ -237,6 +246,13 @@ namespace controller_interface
             if(msg->r1)
             {
                 msg_injection->is_release_mech[1] = true;
+            }
+
+            //低速モートのonoff。トグル。
+            if(msg->r2)
+            {
+                if(slow_speed_flag) slow_speed_flag = false;
+                else slow_speed_flag = true;
             }
 
             //r3は足回りの手自動の切り替え。is_move_autonomousを使って、トグルになるようにしてる。ERの上物からもらう必要はない。
@@ -278,11 +294,11 @@ namespace controller_interface
             is_reset = msg->s;
 
             //basecontrolへの代入
-            auto msg_base_control = std::make_shared<controller_interface_msg::msg::BaseControl>();
-            msg_base_control->is_restart = is_reset;
-            msg_base_control->is_emergency = is_emergency;
-            msg_base_control->is_move_autonomous = is_move_autonomous;
-            msg_base_control->initial_state = initial_state;
+            // auto msg_base_control = std::make_shared<controller_interface_msg::msg::BaseControl>();
+            msg_base_control.is_restart = is_reset;
+            msg_base_control.is_emergency = is_emergency;
+            msg_base_control.is_move_autonomous = is_move_autonomous;
+            msg_base_control.initial_state = initial_state;
 
             //mainへ緊急を送る代入
             _candata_btn[0] = is_emergency;
@@ -323,7 +339,7 @@ namespace controller_interface
             }
             if(robotcontrol_flag)
             {
-                _pub_base_control->publish(*msg_base_control);            
+                _pub_base_control->publish(msg_base_control);            
             }
             if(msg->s)
             {
@@ -332,8 +348,8 @@ namespace controller_interface
             }
             if(flag_restart)
             {
-                msg_base_control->is_restart = false;
-                _pub_base_control->publish(*msg_base_control);
+                msg_base_control.is_restart = false;
+                _pub_base_control->publish(msg_base_control);
             }
         }
 
@@ -344,6 +360,18 @@ namespace controller_interface
             msg_btn->candlc = 8;
 
             uint8_t _candata_btn[8];
+
+            if(msg->left)
+            {
+                if(msg_base_control.is_injection_mech_stop[0])msg_base_control.is_injection_mech_stop[0] = false;
+                else msg_base_control.is_injection_mech_stop[0] = true; 
+            }
+
+            if(msg->right)
+            {
+                if(msg_base_control.is_injection_mech_stop[1])msg_base_control.is_injection_mech_stop[1] = false;
+                else msg_base_control.is_injection_mech_stop[1] = true; 
+            }
 
             //mainへボタン情報を送る代入
             _candata_btn[0] = msg->a;
@@ -359,6 +387,10 @@ namespace controller_interface
             if(msg->a || msg->b || msg->y || msg->x || msg->right || msg->down || msg->left || msg->up)
             {
                 _pub_canusb->publish(*msg_btn);
+            }
+            if(msg->left || msg->right)
+            {
+                _pub_base_control->publish(msg_base_control);
             }
         }
 
@@ -442,30 +474,57 @@ namespace controller_interface
 
             if(is_move_autonomous == false)
             {
-                velPlanner_linear_x.vel(static_cast<double>(values[1]));//unityとロボットにおける。xとyが違うので逆にしている。
-                velPlanner_linear_y.vel(static_cast<double>(-values[0]));
-                velPlanner_angular_z.vel(static_cast<double>(-values[2]));
+                if(slow_speed_flag)
+                {
+                    slow_velPlanner_linear_x.vel(static_cast<double>(values[1]));//unityとロボットにおける。xとyが違うので逆にしている。
+                    slow_velPlanner_linear_y.vel(static_cast<double>(-values[0]));
+                    velPlanner_angular_z.vel(static_cast<double>(-values[2]));
 
-                velPlanner_linear_x.cycle();
-                velPlanner_linear_y.cycle();
-                velPlanner_angular_z.cycle();
+                    slow_velPlanner_linear_x.cycle();
+                    slow_velPlanner_linear_y.cycle();
+                    velPlanner_angular_z.cycle();
 
-                float_to_bytes(_candata_joy, static_cast<float>(velPlanner_linear_x.vel()) * manual_linear_max_vel);
-                float_to_bytes(_candata_joy+4, static_cast<float>(velPlanner_linear_y.vel()) * manual_linear_max_vel);
-                for(int i=0; i<msg_linear->candlc; i++) msg_linear->candata[i] = _candata_joy[i];
+                    float_to_bytes(_candata_joy, static_cast<float>(slow_velPlanner_linear_x.vel()) * slow_manual_linear_max_vel);
+                    float_to_bytes(_candata_joy+4, static_cast<float>(slow_velPlanner_linear_y.vel()) * slow_manual_linear_max_vel);
+                    for(int i=0; i<msg_linear->candlc; i++) msg_linear->candata[i] = _candata_joy[i];
 
-                float_to_bytes(_candata_joy, static_cast<float>(velPlanner_angular_z.vel()) * manual_angular_max_vel);
-                for(int i=0; i<msg_angular->candlc; i++) msg_angular->candata[i] = _candata_joy[i];
+                    float_to_bytes(_candata_joy, static_cast<float>(velPlanner_angular_z.vel()) * manual_angular_max_vel);
+                    for(int i=0; i<msg_angular->candlc; i++) msg_angular->candata[i] = _candata_joy[i];
 
+                    _pub_canusb->publish(*msg_linear);
+                    _pub_canusb->publish(*msg_angular);
+
+                    msg_gazebo->linear.x = slow_velPlanner_linear_x.vel();
+                    msg_gazebo->linear.y = slow_velPlanner_linear_y.vel();
+                    msg_gazebo->angular.z = velPlanner_angular_z.vel();
+                }
+                else
+                {
+                    high_velPlanner_linear_x.vel(static_cast<double>(values[1]));//unityとロボットにおける。xとyが違うので逆にしている。
+                    high_velPlanner_linear_y.vel(static_cast<double>(-values[0]));
+                    velPlanner_angular_z.vel(static_cast<double>(-values[2]));
+
+                    high_velPlanner_linear_x.cycle();
+                    high_velPlanner_linear_y.cycle();
+                    velPlanner_angular_z.cycle();
+
+                    float_to_bytes(_candata_joy, static_cast<float>(high_velPlanner_linear_x.vel()) * high_manual_linear_max_vel);
+                    float_to_bytes(_candata_joy+4, static_cast<float>(high_velPlanner_linear_y.vel()) * high_manual_linear_max_vel);
+                    for(int i=0; i<msg_linear->candlc; i++) msg_linear->candata[i] = _candata_joy[i];
+
+                    float_to_bytes(_candata_joy, static_cast<float>(velPlanner_angular_z.vel()) * manual_angular_max_vel);
+                    for(int i=0; i<msg_angular->candlc; i++) msg_angular->candata[i] = _candata_joy[i];
+
+                    _pub_canusb->publish(*msg_linear);
+                    _pub_canusb->publish(*msg_angular);
+
+                    msg_gazebo->linear.x = high_velPlanner_linear_x.vel();
+                    msg_gazebo->linear.y = high_velPlanner_linear_y.vel();
+                    msg_gazebo->angular.z = velPlanner_angular_z.vel();
+                }
                 _pub_canusb->publish(*msg_linear);
                 _pub_canusb->publish(*msg_angular);
-
-                msg_gazebo->linear.x = velPlanner_linear_x.vel();
-                msg_gazebo->linear.y = velPlanner_linear_y.vel();
-                msg_gazebo->angular.z = velPlanner_angular_z.vel();
-                //_pub_gazebo->publish(*msg_gazebo);
-
-                flag_move_autonomous = true;
+                _pub_gazebo->publish(*msg_gazebo);
             }
         }
 }

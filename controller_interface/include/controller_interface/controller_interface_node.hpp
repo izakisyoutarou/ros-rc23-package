@@ -101,6 +101,8 @@ namespace controller_interface
             void _recv_callback();
 
             void _recv_joy_main(const unsigned char data[16]);
+
+            controller_interface_msg::msg::BaseControl msg_base_control;
             
             //base_control用
             bool is_reset = false;
@@ -116,8 +118,10 @@ namespace controller_interface
             bool is_injection1_convergence;
 
             //初期化指定用
-            const float manual_linear_max_vel;
+            const float high_manual_linear_max_vel;
+            const float slow_manual_linear_max_vel;
             const float manual_angular_max_vel;
+            
             const bool defalt_restart_flag;
             const bool defalt_move_autonomous_flag;
             const bool defalt_emergency_flag;
@@ -151,10 +155,16 @@ namespace controller_interface
 
             bool start_flag;
 
+            bool slow_speed_flag;
+
             //計画機
-            VelPlanner velPlanner_linear_x;
-            VelPlanner velPlanner_linear_y;
-            const VelPlannerLimit limit_linear;
+            VelPlanner high_velPlanner_linear_x;
+            VelPlanner high_velPlanner_linear_y;
+            const VelPlannerLimit high_limit_linear;
+
+            VelPlanner slow_velPlanner_linear_x;
+            VelPlanner slow_velPlanner_linear_y;
+            const VelPlannerLimit slow_limit_linear;
 
             VelPlanner velPlanner_angular_z;
             const VelPlannerLimit limit_angular;

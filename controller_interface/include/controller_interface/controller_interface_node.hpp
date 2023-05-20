@@ -108,6 +108,9 @@ namespace controller_interface
             bool is_reset = false;
             bool is_emergency = false;
             bool is_move_autonomous = false;
+            bool is_slow_speed = false;
+            bool is_injection_mech_stop_m0 = false;
+            bool is_injection_mech_stop_m1 = false;
             std::string initial_state = "";
 
             //convergence用
@@ -125,6 +128,7 @@ namespace controller_interface
             const bool defalt_restart_flag;
             const bool defalt_move_autonomous_flag;
             const bool defalt_emergency_flag;
+            const bool defalt_slow_speed_flag;
 
             const bool defalt_spline_convergence;
             const bool defalt_injection_calculator0_convergence;
@@ -154,8 +158,6 @@ namespace controller_interface
             bool start_er_main;
 
             bool start_flag;
-
-            bool slow_speed_flag;
 
             //計画機
             VelPlanner high_velPlanner_linear_x;

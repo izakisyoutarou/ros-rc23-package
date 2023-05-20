@@ -36,6 +36,7 @@ namespace controller_interface
         defalt_restart_flag(get_parameter("defalt_restart_flag").as_bool()),
         defalt_emergency_flag(get_parameter("defalt_emergency_flag").as_bool()),
         defalt_move_autonomous_flag(get_parameter("defalt_move_autonomous_flag").as_bool()),
+        defalt_slow_speed_flag(get_parameter("defalt_slow_speed_flag").as_bool()),
 
         defalt_spline_convergence(get_parameter("defalt_spline_convergence").as_bool()),
         defalt_injection_calculator0_convergence(get_parameter("defalt_injection_calculator0_convergence").as_bool()),
@@ -139,10 +140,12 @@ namespace controller_interface
             msg_base_control.is_restart = defalt_restart_flag;
             msg_base_control.is_emergency = defalt_emergency_flag;
             msg_base_control.is_move_autonomous = defalt_move_autonomous_flag;
+            msg_base_control.is_slow_speed = defalt_slow_speed_flag;
             msg_base_control.initial_state = "O";
             this->is_reset = defalt_restart_flag;
             this->is_emergency = defalt_emergency_flag;
             this->is_move_autonomous = defalt_move_autonomous_flag;
+            this->is_slow_speed = defalt_slow_speed_flag;
             this->initial_state = "O";
             _pub_base_control->publish(msg_base_control);
 
@@ -251,8 +254,9 @@ namespace controller_interface
             //低速モートのonoff。トグル。
             if(msg->r2)
             {
-                if(slow_speed_flag) slow_speed_flag = false;
-                else slow_speed_flag = true;
+                robotcontrol_flag = true;
+                if(is_slow_speed) is_slow_speed = false;
+                else is_slow_speed = true;
             }
 
             //r3は足回りの手自動の切り替え。is_move_autonomousを使って、トグルになるようにしてる。ERの上物からもらう必要はない。
@@ -280,8 +284,11 @@ namespace controller_interface
             {
                 robotcontrol_flag = true;
                 flag_restart = true;
-                is_move_autonomous = defalt_move_autonomous_flag;
                 is_emergency = false;
+                is_injection_mech_stop_m0 = false;
+                is_injection_mech_stop_m1 = false;
+                is_move_autonomous = defalt_move_autonomous_flag;
+                is_slow_speed = defalt_slow_speed_flag;
                 initial_state = "O";
 
                 is_spline_convergence = defalt_spline_convergence;
@@ -298,7 +305,10 @@ namespace controller_interface
             msg_base_control.is_restart = is_reset;
             msg_base_control.is_emergency = is_emergency;
             msg_base_control.is_move_autonomous = is_move_autonomous;
+            msg_base_control.is_slow_speed = is_slow_speed;
             msg_base_control.initial_state = initial_state;
+            msg_base_control.is_injection_mech_stop[0] = is_injection_mech_stop_m0;
+            msg_base_control.is_injection_mech_stop[1] = is_injection_mech_stop_m1;
 
             //mainへ緊急を送る代入
             _candata_btn[0] = is_emergency;
@@ -363,15 +373,18 @@ namespace controller_interface
 
             if(msg->left)
             {
-                if(msg_base_control.is_injection_mech_stop[0])msg_base_control.is_injection_mech_stop[0] = false;
-                else msg_base_control.is_injection_mech_stop[0] = true; 
+                if(is_injection_mech_stop_m0)is_injection_mech_stop_m0 = false;
+                else is_injection_mech_stop_m0 = true; 
             }
 
             if(msg->right)
             {
-                if(msg_base_control.is_injection_mech_stop[1])msg_base_control.is_injection_mech_stop[1] = false;
-                else msg_base_control.is_injection_mech_stop[1] = true; 
+                if(is_injection_mech_stop_m1)is_injection_mech_stop_m1 = false;
+                else is_injection_mech_stop_m1 = true; 
             }
+
+            msg_base_control.is_injection_mech_stop[0] = is_injection_mech_stop_m0;
+            msg_base_control.is_injection_mech_stop[1] = is_injection_mech_stop_m1;
 
             //mainへボタン情報を送る代入
             _candata_btn[0] = msg->a;
@@ -474,7 +487,7 @@ namespace controller_interface
 
             if(is_move_autonomous == false)
             {
-                if(slow_speed_flag)
+                if(is_slow_speed)
                 {
                     slow_velPlanner_linear_x.vel(static_cast<double>(values[1]));//unityとロボットにおける。xとyが違うので逆にしている。
                     slow_velPlanner_linear_y.vel(static_cast<double>(-values[0]));

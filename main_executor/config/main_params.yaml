@@ -55,8 +55,8 @@ controller_interface_node:
   ros__parameters:
     # 手動の高速　並進　速度[m/s],加速度[m/s^2],加減速度[-m/s^2]
     high_linear_max_vel: 2.0
-    high_linear_max_acc: 2.0
-    high_linear_max_dec: 2.0
+    high_linear_max_acc: 4.0
+    high_linear_max_dec: 4.0
     # 手動の低速　並進　速度[m/s],加速度[m/s^2],加減速度[-m/s^2]
     slow_linear_max_vel: 0.5
     slow_linear_max_acc: 1.0
@@ -77,6 +77,7 @@ controller_interface_node:
     defalt_restart_flag: false
     defalt_emergency_flag: true
     defalt_move_autonomous_flag: true
+    defalt_slow_speed_flag: false
 
     #収束の初期値
     defalt_spline_convergence: false

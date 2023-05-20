@@ -240,6 +240,21 @@ namespace controller_interface
             bool robotcontrol_flag = false;//base_control(手自動、緊急、リスタート)が押されたらpubする
             bool flag_restart = false;//resertがtureをpubした後にfalseをpubする
 
+            //leftとrightで射出機構の停止
+            if(msg->left)
+            {
+                robotcontrol_flag = true;
+                if(is_injection_mech_stop_m0)is_injection_mech_stop_m0 = false;
+                else is_injection_mech_stop_m0 = true; 
+            }
+
+            if(msg->right)
+            {
+                robotcontrol_flag = true;
+                if(is_injection_mech_stop_m1)is_injection_mech_stop_m1 = false;
+                else is_injection_mech_stop_m1 = true; 
+            }
+
             //l1,r1で射出機構をロックする。ロックされた射出機構は次のポール選択で選ばれない。
             if(msg->l1)
             {
@@ -371,21 +386,6 @@ namespace controller_interface
 
             uint8_t _candata_btn[8];
 
-            if(msg->left)
-            {
-                if(is_injection_mech_stop_m0)is_injection_mech_stop_m0 = false;
-                else is_injection_mech_stop_m0 = true; 
-            }
-
-            if(msg->right)
-            {
-                if(is_injection_mech_stop_m1)is_injection_mech_stop_m1 = false;
-                else is_injection_mech_stop_m1 = true; 
-            }
-
-            msg_base_control.is_injection_mech_stop[0] = is_injection_mech_stop_m0;
-            msg_base_control.is_injection_mech_stop[1] = is_injection_mech_stop_m1;
-
             //mainへボタン情報を送る代入
             _candata_btn[0] = msg->a;
             _candata_btn[1] = msg->b;
@@ -400,10 +400,6 @@ namespace controller_interface
             if(msg->a || msg->b || msg->y || msg->x || msg->right || msg->down || msg->left || msg->up)
             {
                 _pub_canusb->publish(*msg_btn);
-            }
-            if(msg->left || msg->right)
-            {
-                _pub_base_control->publish(msg_base_control);
             }
         }
 

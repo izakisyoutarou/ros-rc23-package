@@ -81,8 +81,11 @@ void Sequencer::_subscriber_callback_base_control(const controller_interface_msg
         initial_state = msg->initial_state;
         pick_assistant = false;
         current_move_progress = 0.0;
+        current_rings = {0,0};
     }
     judge_convergence.spline_convergence = msg->is_move_autonomous;
+    judge_convergence.injection0= msg->is_injection_autonomous;
+    judge_convergence.injection1= msg->is_injection_autonomous;
 }
 
 void Sequencer::_subscriber_callback_convergence(const controller_interface_msg::msg::Convergence::SharedPtr msg){
@@ -130,17 +133,21 @@ void Sequencer::_subscriber_callback_convergence(const controller_interface_msg:
         auto msg_inject = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
         msg_inject->canid = can_inject_id;
         msg_inject->candlc = 2;
+        auto msg_rings = std::make_shared<controller_interface_msg::msg::Injection>();
 
-        if(msg->injection_calculator0 && msg->injection0 && inject_flag[0] && (msg->spline_convergence || !judge_convergence.spline_convergence)){
+        if(judge_convergence.injection0 && msg->injection_calculator0 && msg->injection0 && inject_flag[0] && (msg->spline_convergence || !judge_convergence.spline_convergence)){
             inject_flag[0] = false;
             msg_inject->candata[0] = true;
             publisher_can->publish(*msg_inject);
+            msg_rings->injectable_rings[0] = --current_rings[0];
         }
-        if(msg->injection_calculator1 && msg->injection1 && inject_flag[1] && (msg->spline_convergence || !judge_convergence.spline_convergence)){
+        if(judge_convergence.injection1 && msg->injection_calculator1 && msg->injection1 && inject_flag[1] && (msg->spline_convergence || !judge_convergence.spline_convergence)){
             inject_flag[1] = false;
             msg_inject->candata[1] = true;
             publisher_can->publish(*msg_inject);
+            msg_rings->injectable_rings[1] = --current_rings[1];
         }
+        publisher_rings->publish(*msg_rings);
     }
 }
 

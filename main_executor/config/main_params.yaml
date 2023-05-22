@@ -1,8 +1,8 @@
 launch: #起動パラメータ
   ros__parameters:
-    slcan: true
-    scan: true
-    tcp_endpoint: true
+    slcan: false
+    scan: false
+    tcp_endpoint: false
     trajectory_planner: true
 
 /**:  #ワイルドカード(ここのパラメータは全ノードから読める: <名前に注意>)

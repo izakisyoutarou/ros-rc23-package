@@ -43,6 +43,7 @@ namespace injection_param_calculator{
         injection_comand.distance = msg->distance;
         injection_comand.direction = msg->direction;
         injection_comand.height = msg->height;
+        injection_comand.velocity_gain = msg->velocity_gain;
 
         isConvergenced = calculateVelocity();        
         msg_isConvergenced->data = isConvergenced;
@@ -52,7 +53,7 @@ namespace injection_param_calculator{
 
         //送信
         uint8_t _candata[8];
-        float_to_bytes(_candata, static_cast<float>(velocity));
+        float_to_bytes(_candata, static_cast<float>(velocity*injection_comand.velocity_gain));
         float_to_bytes(_candata+4, static_cast<float>(injection_comand.direction));
         for(int i=0; i<msg_injection->candlc; i++) msg_injection->candata[i] = _candata[i];
         _pub_isConvergenced->publish(*msg_isConvergenced);

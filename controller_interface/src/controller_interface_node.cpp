@@ -36,6 +36,7 @@ namespace controller_interface
         defalt_restart_flag(get_parameter("defalt_restart_flag").as_bool()),
         defalt_emergency_flag(get_parameter("defalt_emergency_flag").as_bool()),
         defalt_move_autonomous_flag(get_parameter("defalt_move_autonomous_flag").as_bool()),
+        defalt_injection_autonomous_flag(get_parameter("defalt_injection_autonomous_flag").as_bool()),
         defalt_slow_speed_flag(get_parameter("defalt_slow_speed_flag").as_bool()),
 
         defalt_spline_convergence(get_parameter("defalt_spline_convergence").as_bool()),
@@ -140,11 +141,13 @@ namespace controller_interface
             msg_base_control.is_restart = defalt_restart_flag;
             msg_base_control.is_emergency = defalt_emergency_flag;
             msg_base_control.is_move_autonomous = defalt_move_autonomous_flag;
+            msg_base_control.is_injection_autonomous = defalt_injection_autonomous_flag;
             msg_base_control.is_slow_speed = defalt_slow_speed_flag;
             msg_base_control.initial_state = "O";
             this->is_reset = defalt_restart_flag;
             this->is_emergency = defalt_emergency_flag;
             this->is_move_autonomous = defalt_move_autonomous_flag;
+            this->is_injection_autonomous = defalt_injection_autonomous_flag;
             this->is_slow_speed = defalt_slow_speed_flag;
             this->initial_state = "O";
             _pub_base_control->publish(msg_base_control);
@@ -303,6 +306,7 @@ namespace controller_interface
                 is_injection_mech_stop_m0 = false;
                 is_injection_mech_stop_m1 = false;
                 is_move_autonomous = defalt_move_autonomous_flag;
+                is_injection_autonomous = defalt_injection_autonomous_flag;
                 is_slow_speed = defalt_slow_speed_flag;
                 initial_state = "O";
 
@@ -320,6 +324,7 @@ namespace controller_interface
             msg_base_control.is_restart = is_reset;
             msg_base_control.is_emergency = is_emergency;
             msg_base_control.is_move_autonomous = is_move_autonomous;
+            msg_base_control.is_injection_autonomous = is_injection_autonomous;
             msg_base_control.is_slow_speed = is_slow_speed;
             msg_base_control.initial_state = initial_state;
             msg_base_control.is_injection_mech_stop[0] = is_injection_mech_stop_m0;

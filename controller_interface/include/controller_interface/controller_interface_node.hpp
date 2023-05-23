@@ -108,6 +108,7 @@ namespace controller_interface
             bool is_reset = false;
             bool is_emergency = false;
             bool is_move_autonomous = false;
+            bool is_injection_autonomous = false;
             bool is_slow_speed = false;
             bool is_injection_mech_stop_m0 = false;
             bool is_injection_mech_stop_m1 = false;
@@ -127,6 +128,7 @@ namespace controller_interface
             
             const bool defalt_restart_flag;
             const bool defalt_move_autonomous_flag;
+            const bool defalt_injection_autonomous_flag;
             const bool defalt_emergency_flag;
             const bool defalt_slow_speed_flag;
 

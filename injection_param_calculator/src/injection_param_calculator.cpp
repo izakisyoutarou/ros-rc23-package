@@ -14,9 +14,7 @@ namespace injection_param_calculator{
         air_resistance(get_parameter("air_resistance").as_double()),
         foundation_hight(get_parameter("foundation_hight").as_double()),
         velocity_lim_max(get_parameter("velocity_lim_max").as_double()),
-        first_velocity(get_parameter("first_velocity").as_double()),
-        first_velocity_low(get_parameter("first_velocity_low").as_double()),
-        angle_bound(get_parameter("angle_bound").as_double()),
+        first_velocities(get_parameter("first_velocities").as_double_array()),
         injection_angle(get_parameter("injection_angle").as_double()),
         max_loop(get_parameter("max_loop").as_int()),
         yow_limit(get_parameter("yow_limit_m"+to_string(mech_num)).as_double_array())
@@ -65,13 +63,13 @@ namespace injection_param_calculator{
     }
 
     double InjectionParamCalculator::calculateFirstVelocity(){
-        double angle = atan2(injection_comand.height,injection_comand.distance);
-        if(angle<dtor(angle_bound)){
-            return first_velocity;
+        double first_velocity;
+        for(int i=0;i<height_polls.size();i++){
+            if(injection_comand.height==height_polls[i]){
+                first_velocity = first_velocities[i];
+            }
         }
-        else{
-            return first_velocity_low;
-        }
+        return first_velocity;
     }
 
     void InjectionParamCalculator::callback_is_convergence(const controller_interface_msg::msg::Convergence::SharedPtr msg){
@@ -84,7 +82,7 @@ namespace injection_param_calculator{
         int num_loop = 0;
         double old_velocity = calculateFirstVelocity();
         if(!(yow_limit[0] < injection_comand.direction && injection_comand.direction < yow_limit[1])){
-            RCLCPP_INFO(get_logger(),"mech_num: &%d 範囲外です!",mech_num);
+            RCLCPP_INFO(get_logger(),"mech_num: %d 範囲外です!",mech_num);
             isConvergence = false;
             return isConvergence;
         }

@@ -133,7 +133,7 @@ injection_param_calculator_node:
   ros__parameters:
     mass: 0.10 #リングの重量[m]
     gravitational_accelerastion: 9.80665  #重力加速度[m/s^2]
-    air_resistance: 0.140
+    air_resistance: 0.160
     foundation_hight: 0.52049  #射出機構の地面からの高さ[m]
     velocity_lim_max: 15.0 #最大初速度[m/s]
     injection_angle: 48.0 #射出角度[deg]

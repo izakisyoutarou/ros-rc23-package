@@ -77,6 +77,7 @@ controller_interface_node:
     defalt_restart_flag: false
     defalt_emergency_flag: true
     defalt_move_autonomous_flag: true
+    defalt_injection_autonomous_flag: true
     defalt_slow_speed_flag: true
 
     #収束の初期値

@@ -58,7 +58,6 @@ namespace injection_param_calculator{
 
         if(isConvergenced){
             RCLCPP_INFO(get_logger(),"mech_num: %d 計算が収束しました",mech_num);
-            RCLCPP_INFO(get_logger(),"velocity: %lf",velocity);
             _pub_can->publish(*msg_injection);
         }
     }
@@ -67,7 +66,6 @@ namespace injection_param_calculator{
         double first_velocity;
         first_velocity = singular_point_coefficient[0]*injection_comand.distance + singular_point_coefficient[1];
         first_velocity = round(first_velocity);
-        RCLCPP_INFO(get_logger(),"first_velocity: %lf",first_velocity);
         return first_velocity;
     }
 

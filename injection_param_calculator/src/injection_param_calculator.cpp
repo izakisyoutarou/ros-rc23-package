@@ -14,9 +14,9 @@ namespace injection_param_calculator{
         air_resistance(get_parameter("air_resistance").as_double()),
         foundation_hight(get_parameter("foundation_hight").as_double()),
         velocity_lim_max(get_parameter("velocity_lim_max").as_double()),
-        first_velocities(get_parameter("first_velocities").as_double_array()),
         injection_angle(get_parameter("injection_angle").as_double()),
         max_loop(get_parameter("max_loop").as_int()),
+        singular_point_coefficient(get_parameter("singular_point_coefficient").as_double_array()),
         yow_limit(get_parameter("yow_limit_m"+to_string(mech_num)).as_double_array())
         {
             _sub_injection_command = this->create_subscription<injection_interface_msg::msg::InjectionCommand>(
@@ -58,17 +58,16 @@ namespace injection_param_calculator{
 
         if(isConvergenced){
             RCLCPP_INFO(get_logger(),"mech_num: %d 計算が収束しました",mech_num);
+            RCLCPP_INFO(get_logger(),"velocity: %lf",velocity);
             _pub_can->publish(*msg_injection);
         }
     }
 
     double InjectionParamCalculator::calculateFirstVelocity(){
         double first_velocity;
-        for(int i=0;i<height_polls.size();i++){
-            if(injection_comand.height==height_polls[i]){
-                first_velocity = first_velocities[i];
-            }
-        }
+        first_velocity = singular_point_coefficient[0]*injection_comand.distance + singular_point_coefficient[1];
+        first_velocity = round(first_velocity);
+        RCLCPP_INFO(get_logger(),"first_velocity: %lf",first_velocity);
         return first_velocity;
     }
 

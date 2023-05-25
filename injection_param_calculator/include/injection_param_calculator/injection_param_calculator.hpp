@@ -37,14 +37,13 @@ namespace injection_param_calculator{
 
             const int mech_num;
             const std::vector<double> yow_limit;  //旋回角の最小最大
-            const std::vector<double>height_polls{1.0, 1.2, 1.9};  //各タイプのポールの高さ
-            const std::vector<double>first_velocities;  //ニュートン法に使用する初期値
-            const double mass;
-            const double gravitational_accelerastion; //重力加速度
-            const double air_resistance;
-            const double foundation_hight;    //射出機構の地面からの高さ
-            const double velocity_lim_max;  //最大初速度
-            const double injection_angle;   //射出角度
+            const std::vector<double> singular_point_coefficient; //初期値を求める関数の係数
+            const double mass;  //リングの重量[kg]
+            const double gravitational_accelerastion; //重力加速度[m/s^2]
+            const double air_resistance;    //空気抵抗係数[kg/s]
+            const double foundation_hight;    //射出機構の地面からの高さ[m]
+            const double velocity_lim_max;  //最大初速度[m/s]
+            const double injection_angle;   //射出角度[deg]
             const int max_loop; //ニュートン法の最大数
             const double eps = 1e-6;
             bool is_convergence;

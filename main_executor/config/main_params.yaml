@@ -101,16 +101,16 @@ spline_pid_node:
     linear_planner_vel_limit_gain: 0.6  #速度計画機の速度上限値にかけるゲイン
 
     linear_planner_gain: 0.1 #並進速度計画機ゲイン  1.3
-    linear_pos_gain: 3.0  #並進位置ズレのゲイン 3.5
+    linear_pos_gain: 3.2  #並進位置ズレのゲイン 3.5
     linear_pos_diff_gain: 0.4
-    linear_pos_integral_gain: 0.01  #並進位置ズレの積分ゲイン
+    linear_pos_integral_gain: 0.03  #並進位置ズレの積分ゲイン
 
-    angular_planner_gain: 1.7 #回転速度計画機ゲイン
+    angular_planner_gain: 1.0 #回転速度計画機ゲイン
     angular_pos_gain: 2.3 #回転位置ズレのゲイン
     angular_pos_integral_gain: 0.03  #回転位置ズレの積分ゲイン 0.01
 
     linear_pos_tolerance: 0.03  #並進到達位置の許容誤差[m]
-    angular_pos_tolerance: 2.0  #回転到達位置の許容誤差[deg]
+    angular_pos_tolerance: 3.0  #回転到達位置の許容誤差[deg]
 
 spline_trajectories_node:
   ros__parameters:
@@ -134,12 +134,12 @@ injection_param_calculator_node:
   ros__parameters:
     mass: 0.10 #リングの重量[m]
     gravitational_accelerastion: 9.80665  #重力加速度[m/s^2]
-    air_resistance: 0.140
+    air_resistance: 0.150
     foundation_hight: 0.52049  #射出機構の地面からの高さ[m]
     velocity_lim_max: 15.0 #最大初速度[m/s]
     injection_angle: 48.0 #射出角度[deg]
     max_loop: 100 #ニュートン法の最大繰り返し数
-    first_velocities: [7.45, 8.95, 12.0] #ニュートン法の初期値に使用する値
+    singular_point_coefficient: [2.2417, 1.000] #初期値を求める関数の係数
     yow_limit_m0: [-60.0,60.0] #左の射出機構の方向角の最小最大[deg]
     yow_limit_m1: [-60.0,60.0] #右の射出機構の方向角の最小最大[deg]
 
@@ -157,5 +157,5 @@ RANSAC_localization:
     odom_weight_angler: 5.0e-4
     voxel_size: 0.05
     trial_num: 50
-    inlier_dist_threshold: 0.01
+    inlier_dist_threshold: 0.0125
     inlier_length_threshold: 0.6

@@ -139,7 +139,7 @@ injection_param_calculator_node:
     velocity_lim_max: 15.0 #最大初速度[m/s]
     injection_angle: 48.0 #射出角度[deg]
     max_loop: 100 #ニュートン法の最大繰り返し数
-    first_velocities: [7.99, 9.50, 12.0] #ニュートン法の初期値に使用する値
+    singular_point_coefficient: [2.2417, 1.000] #初期値を求める関数の係数
     yow_limit_m0: [-60.0,60.0] #左の射出機構の方向角の最小最大[deg]
     yow_limit_m1: [-60.0,60.0] #右の射出機構の方向角の最小最大[deg]
 

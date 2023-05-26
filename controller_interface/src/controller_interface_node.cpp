@@ -125,6 +125,19 @@ namespace controller_interface
                 std::bind(&SmartphoneGamepad::callback_injection_calculator_1, this, std::placeholders::_1)
             );
 
+            //sequencerからsub
+            _sub_injection_pole_m0 = this->create_subscription<std_msgs::msg::String>(
+                "injection_pole_m0",
+                _qos,
+                std::bind(&SmartphoneGamepad::callback_injection_pole_m0, this, std::placeholders::_1)
+            );
+
+            _sub_injection_pole_m1 = this->create_subscription<std_msgs::msg::String>(
+                "injection_pole_m1",
+                _qos,
+                std::bind(&SmartphoneGamepad::callback_injection_pole_m1, this, std::placeholders::_1)
+            );
+
             //canusbへpub
             _pub_canusb = this->create_publisher<socketcan_interface_msg::msg::SocketcanIF>("can_tx", _qos);
 
@@ -197,20 +210,20 @@ namespace controller_interface
                 [this] { _recv_callback(); }
             );
 
-            _start_timer = this->create_wall_timer(
-                std::chrono::milliseconds(this->get_parameter("start_ms").as_int()),
-                [this] { 
-                    if(start_flag)
-                    {
-                        const string initial_inject_state_with_null = initial_inject_state + '\0';
-                        const char* char_ptr2 = initial_inject_state_with_null.c_str();
-                        const unsigned char* inject = reinterpret_cast<const unsigned char*>(char_ptr2);
+            // _start_timer = this->create_wall_timer(
+            //     std::chrono::milliseconds(this->get_parameter("start_ms").as_int()),
+            //     [this] { 
+            //         if(start_flag)
+            //         {
+            //             const string initial_inject_state_with_null = initial_inject_state + '\0';
+            //             const char* char_ptr2 = initial_inject_state_with_null.c_str();
+            //             const unsigned char* inject = reinterpret_cast<const unsigned char*>(char_ptr2);
 
-                        command.state_num_ER(inject, er_pc,udp_port_state);
-                        start_flag = false;
-                    }
-                }
-            );
+            //             command.state_num_ER(inject, er_pc,udp_port_state);
+            //             start_flag = false;
+            //         }
+            //     }
+            // );
 
             //計画機
             high_velPlanner_linear_x.limit(high_limit_linear);
@@ -445,17 +458,18 @@ namespace controller_interface
             is_injection_calculator1_convergence = msg->data;
         }
 
-        void SmartphoneGamepad::start_integration_async()
+         void SmartphoneGamepad::callback_injection_pole_m0(const std_msgs::msg::String::SharedPtr msg)
         {
-            const char* char_ptr = initial_pickup_state.c_str();
-            const unsigned char* pickup = reinterpret_cast<const unsigned char*>(char_ptr);
+            //inject_pole_m0が送られてきたら、機構収束をfalseにする。ポール選択をしたときに射出してから
+            //yawが変更されるバグのために実装
+            is_injection0_convergence = false;
+        }
 
-            const string initial_inject_state_with_null = initial_inject_state + '\0';
-            const char* char_ptr2 = initial_inject_state_with_null.c_str();
-            const unsigned char* inject = reinterpret_cast<const unsigned char*>(char_ptr2);
-                  
-            command.state_num_ER(pickup, er_pc,udp_port_state);
-            command.state_num_ER(inject, er_pc,udp_port_state);
+        void SmartphoneGamepad::callback_injection_pole_m1(const std_msgs::msg::String::SharedPtr msg)
+        {
+            //inject_pole_m1が送られてきたら、機構収束をfalseにする。ポール選択をしたときに射出してから
+            //yawが変更されるバグのために実装
+            is_injection1_convergence = false;
         }
 
         void SmartphoneGamepad::_recv_callback()

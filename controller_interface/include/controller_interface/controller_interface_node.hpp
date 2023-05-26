@@ -37,8 +37,6 @@ namespace controller_interface
             CONTROLLER_INTERFACE_PUBLIC
             explicit SmartphoneGamepad(const std::string& name_space, const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
 
-            void start_integration_async();
-
         private:
             //ER_mainのcontrollerから
             rclcpp::Subscription<controller_interface_msg::msg::Pad>::SharedPtr _sub_pad_main;
@@ -59,6 +57,10 @@ namespace controller_interface
             rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _sub_injection_calculator_0;
             rclcpp::Subscription<std_msgs::msg::Bool>::SharedPtr _sub_injection_calculator_1;
 
+            //sequencerから
+            rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_injection_pole_m0;
+            rclcpp::Subscription<std_msgs::msg::String>::SharedPtr _sub_injection_pole_m1;
+
             //CanUsbへ
             rclcpp::Publisher<socketcan_interface_msg::msg::SocketcanIF>::SharedPtr _pub_canusb;
 
@@ -74,7 +76,7 @@ namespace controller_interface
             rclcpp::TimerBase::SharedPtr _pub_heartbeat;
             rclcpp::TimerBase::SharedPtr _pub_timer_convergence;
             rclcpp::TimerBase::SharedPtr _socket_timer;
-            rclcpp::TimerBase::SharedPtr _start_timer;
+            // rclcpp::TimerBase::SharedPtr _start_timer;
 
             //QoS
             rclcpp::QoS _qos = rclcpp::QoS(10);
@@ -97,6 +99,10 @@ namespace controller_interface
             //injection_param_calculatorからのcallback
             void callback_injection_calculator_0(const std_msgs::msg::Bool::SharedPtr msg);
             void callback_injection_calculator_1(const std_msgs::msg::Bool::SharedPtr msg);
+
+            //sequencerからのcallback
+            void callback_injection_pole_m0(const std_msgs::msg::String::SharedPtr msg);
+            void callback_injection_pole_m1(const std_msgs::msg::String::SharedPtr msg);
 
             void _recv_callback();
 

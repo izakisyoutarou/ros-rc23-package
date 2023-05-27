@@ -60,12 +60,16 @@ private:
     const int16_t can_cancel_inject_id;
     const int16_t can_calculatable_id;
 
+    const std::string first_inject_state;
+    const std::string second_inject_state;
+
     const int max_rings = 5;
     std::array<int,2> current_rings = {0,0};
 
     const std::string aimable_poles_atA_file_path;   //状態Aでの射出可能ポールのファイルパス
     const std::string aimable_poles_atB_file_path;   //状態Bでの射出可能ポールのファイルパス
     const std::string aimable_poles_atC_file_path;   //状態Cでの射出可能ポールのファイルパス
+    const std::string aimable_poles_atD_file_path;   //状態Dでの射出可能ポールのファイルパス
 
     std::vector<std::string> aimable_poles_m0;
     std::vector<std::string> aimable_poles_m1;
@@ -77,7 +81,7 @@ private:
 
     std::string current_pickup_state;
     std::string current_inject_state;
-    std::string initial_state;
+    // std::string initial_state;
 
     double current_move_progress = 0.0;
     bool pick_assistant = false;

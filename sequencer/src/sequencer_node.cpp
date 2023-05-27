@@ -20,11 +20,15 @@ can_inject_id(get_parameter("canid.inject").as_int()),
 can_cancel_inject_id(get_parameter("canid.cancel_inject").as_int()),
 can_calculatable_id(get_parameter("canid.calculatable").as_int()),
 
+first_inject_state(get_parameter("first_inject_state").as_string()),
+second_inject_state(get_parameter("second_inject_state").as_string()),
+
 socket_robot_state(get_parameter("port.robot_state").as_int()),
 
 aimable_poles_atA_file_path(ament_index_cpp::get_package_share_directory("main_executor")+"/config/"+"/sequencer/"+"aimable_poles_atA.cfg"),
 aimable_poles_atB_file_path(ament_index_cpp::get_package_share_directory("main_executor")+"/config/"+"/sequencer/"+"aimable_poles_atB.cfg"),
-aimable_poles_atC_file_path(ament_index_cpp::get_package_share_directory("main_executor")+"/config/"+"/sequencer/"+"aimable_poles_atC.cfg")
+aimable_poles_atC_file_path(ament_index_cpp::get_package_share_directory("main_executor")+"/config/"+"/sequencer/"+"aimable_poles_atC.cfg"),
+aimable_poles_atD_file_path(ament_index_cpp::get_package_share_directory("main_executor")+"/config/"+"/sequencer/"+"aimable_poles_atD.cfg")
 {
     _subscription_base_control = this->create_subscription<controller_interface_msg::msg::BaseControl>(
         "pub_base_control",
@@ -76,9 +80,9 @@ aimable_poles_atC_file_path(ament_index_cpp::get_package_share_directory("main_e
 
 void Sequencer::_subscriber_callback_base_control(const controller_interface_msg::msg::BaseControl::SharedPtr msg){
     if(msg->is_restart){
-        current_inject_state = msg->initial_state;
-        current_pickup_state = msg->initial_state;
-        initial_state = msg->initial_state;
+        current_inject_state = "";
+        current_pickup_state = "";
+        // initial_state = msg->initial_state;
         pick_assistant = false;
         current_move_progress = 0.0;
         current_rings = {0,0};
@@ -128,7 +132,7 @@ void Sequencer::_subscriber_callback_convergence(const controller_interface_msg:
             publisher_rings->publish(*msg_rings);
         }
     }
-    else if(current_inject_state != initial_state){
+    else if(current_inject_state != ""){
         auto msg_inject = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
         msg_inject->canid = can_inject_id;
         msg_inject->candlc = 2;
@@ -255,11 +259,15 @@ void Sequencer::_recv_robot_state(const unsigned char data[2]){
         msg_pickup_preparation->candata[6] = true; //左回収準備
         publisher_can->publish(*msg_pickup_preparation);
         RCLCPP_INFO(this->get_logger(), "左方回収準備");
+        current_inject_state = first_inject_state;
+        cout << first_inject_state << "に射出状態を移行" << endl;
     }
     else if(state=="L1"){
         msg_pickup_preparation->candata[4] = true; //右回収準備
         publisher_can->publish(*msg_pickup_preparation);
         RCLCPP_INFO(this->get_logger(), "右方回収準備");
+        current_inject_state = second_inject_state;
+        cout << second_inject_state << "に射出状態を移行" << endl;
     }
 
     if(state=="L0" || state=="L1"){
@@ -270,17 +278,18 @@ void Sequencer::_recv_robot_state(const unsigned char data[2]){
         current_move_progress = 0.0;
 
         cancel_inject(true, true);
-        return;
+        // return;
     }
-
-    /***** 回収特殊状態(L0,L1)入力時はこの先は実行しない *****/
-    current_inject_state = state[0];
+    else{
+        current_inject_state = state[0];
+    }
 
     // 各状態での射出可能ポールのリストアップ
     string aimable_poles_file_path;
-    if(state[0]=='A') aimable_poles_file_path = aimable_poles_atA_file_path;
-    else if(state[0]=='B') aimable_poles_file_path = aimable_poles_atB_file_path;
-    else if(state[0]=='C') aimable_poles_file_path = aimable_poles_atC_file_path;
+    if(current_inject_state=="A") aimable_poles_file_path = aimable_poles_atA_file_path;
+    else if(current_inject_state=="B") aimable_poles_file_path = aimable_poles_atB_file_path;
+    else if(current_inject_state=="C") aimable_poles_file_path = aimable_poles_atC_file_path;
+    else if(current_inject_state=="D") aimable_poles_file_path = aimable_poles_atD_file_path;
 
     ifstream ifs(aimable_poles_file_path);
     if(ifs){

@@ -90,7 +90,7 @@ void Sequencer::_subscriber_callback_base_control(const controller_interface_msg
 
 void Sequencer::_subscriber_callback_convergence(const controller_interface_msg::msg::Convergence::SharedPtr msg){
     // cout << "回収状態 : " << current_pickup_state << endl;
-    if((current_pickup_state == "L0" || current_pickup_state == "L1") && current_move_progress > 0.6){
+    if((current_pickup_state == "L0" || current_pickup_state == "L1") && current_move_progress > 0.7){
         if(!pick_assistant){
             auto msg_pick_assistant = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
             msg_pick_assistant->canid = can_digital_button_id;
@@ -103,26 +103,25 @@ void Sequencer::_subscriber_callback_convergence(const controller_interface_msg:
             pick_assistant = true;
         }
         if(msg->spline_convergence || !judge_convergence.spline_convergence){
-            current_pickup_state = "";
-
             // 回収もしくは回収・装填
             auto msg_pickup = std::make_shared<socketcan_interface_msg::msg::SocketcanIF>();
             msg_pickup->canid = can_digital_button_id;
             msg_pickup->candlc = 8;
 
-            if(current_rings[0] <= 0 || current_rings[1] <= 0){
-                msg_pickup->candata[7] = true; // 回収・装填
-                RCLCPP_INFO(this->get_logger(), "リングの回収及び装填");
-            }
-            else{
+            if(current_rings[0] > 0 || current_rings[1] > 0 || current_pickup_state == "L1"){
                 msg_pickup->candata[5] = true; // 回収
                 RCLCPP_INFO(this->get_logger(), "リングの回収");
             }
+            else{
+                msg_pickup->candata[7] = true; // 回収・装填
+                RCLCPP_INFO(this->get_logger(), "リングの回収及び装填");
+            }
 
             publisher_can->publish(*msg_pickup);
+            current_pickup_state = "";
 
             // 射出可能リング数の更新
-            current_rings = {max_rings, max_rings};
+            current_rings = {current_rings[0]+max_rings, current_rings[1]+max_rings};
             auto msg_rings = std::make_shared<controller_interface_msg::msg::Injection>();
             msg_rings->injectable_rings[0] = current_rings[0];
             msg_rings->injectable_rings[1] = current_rings[1];

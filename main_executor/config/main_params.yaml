@@ -12,7 +12,7 @@ launch: #起動パラメータ
     tf_laser2robot: [0.4655,0.0,0.0,  3.14159,0.0,0.0]  #ロボット->lidarのTF[x,y,z,r,p,y]
 
     # 自動の並進  速度[m/s],加速度[m/s^2],加減速度[-m/s^2],躍度[m/s^3]
-    linear_max_vel: 3.0
+    linear_max_vel: 3.5
     linear_max_acc: 4.0
     linear_max_dec: 4.0
     linear_max_jer: 0.0
@@ -71,7 +71,7 @@ controller_interface_node:
 
     interval_ms: 50
     pole_ms: 20
-    start_ms: 1000
+    start_ms: 3000
 
     #リスタート、緊急、足回りの手自動、上物の手自動、手動の射角
     defalt_restart_flag: false
@@ -93,6 +93,8 @@ controller_interface_node:
 sequencer_node:
   ros__parameters:
     interval_ms: 50
+    first_inject_state : "B"
+    second_inject_state : "D"
 
 spline_pid_node:
   ros__parameters:
@@ -101,16 +103,16 @@ spline_pid_node:
     linear_planner_vel_limit_gain: 0.6  #速度計画機の速度上限値にかけるゲイン
 
     linear_planner_gain: 0.1 #並進速度計画機ゲイン  1.3
-    linear_pos_gain: 3.2  #並進位置ズレのゲイン 3.5
+    linear_pos_gain: 3.7  #並進位置ズレのゲイン 3.5
     linear_pos_diff_gain: 0.4
-    linear_pos_integral_gain: 0.03  #並進位置ズレの積分ゲイン
+    linear_pos_integral_gain: 0.04  #並進位置ズレの積分ゲイン
 
     angular_planner_gain: 1.0 #回転速度計画機ゲイン
-    angular_pos_gain: 2.3 #回転位置ズレのゲイン
+    angular_pos_gain: 3.0 #回転位置ズレのゲイン
     angular_pos_integral_gain: 0.03  #回転位置ズレの積分ゲイン 0.01
 
     linear_pos_tolerance: 0.03  #並進到達位置の許容誤差[m]
-    angular_pos_tolerance: 3.0  #回転到達位置の許容誤差[deg]
+    angular_pos_tolerance: 2.0  #回転到達位置の許容誤差[deg]
 
 spline_trajectories_node:
   ros__parameters:
@@ -136,7 +138,7 @@ injection_param_calculator_node:
     gravitational_accelerastion: 9.80665  #重力加速度[m/s^2]
     air_resistance: 0.150
     foundation_hight: 0.52049  #射出機構の地面からの高さ[m]
-    velocity_lim_max: 15.0 #最大初速度[m/s]
+    velocity_lim_max: 18.0 #最大初速度[m/s]
     injection_angle: 48.0 #射出角度[deg]
     max_loop: 100 #ニュートン法の最大繰り返し数
     singular_point_coefficient: [2.2417, 1.000] #初期値を求める関数の係数
@@ -158,4 +160,4 @@ RANSAC_localization:
     voxel_size: 0.05
     trial_num: 50
     inlier_dist_threshold: 0.0125
-    inlier_length_threshold: 0.6
+    inlier_length_threshold: 0.4

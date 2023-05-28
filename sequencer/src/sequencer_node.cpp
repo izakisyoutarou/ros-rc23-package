@@ -76,6 +76,7 @@ aimable_poles_atD_file_path(ament_index_cpp::get_package_share_directory("main_e
     publisher_pole_m1 = this->create_publisher<std_msgs::msg::String>("injection_pole_m1", _qos);
     publisher_move_node = this->create_publisher<std_msgs::msg::String>("move_node", _qos);
     publisher_rings = this->create_publisher<controller_interface_msg::msg::Injection>("current_rings", _qos);
+    publisher_inject_state = this->create_publisher<std_msgs::msg::String>("inject_state", _qos);
 }
 
 void Sequencer::_subscriber_callback_base_control(const controller_interface_msg::msg::BaseControl::SharedPtr msg){
@@ -282,6 +283,9 @@ void Sequencer::_recv_robot_state(const unsigned char data[2]){
     }
     else{
         current_inject_state = state[0];
+        auto msg_state = std::make_shared<std_msgs::msg::String>();
+        msg_state->data = current_inject_state;
+        publisher_inject_state->publish(*msg_state);
     }
 
     // 各状態での射出可能ポールのリストアップ

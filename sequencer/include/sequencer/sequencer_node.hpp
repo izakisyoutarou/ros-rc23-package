@@ -47,6 +47,7 @@ private:
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_pole_m1;
     rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_move_node;
     rclcpp::Publisher<controller_interface_msg::msg::Injection>::SharedPtr publisher_rings;
+    rclcpp::Publisher<std_msgs::msg::String>::SharedPtr publisher_inject_state;
 
     rclcpp::TimerBase::SharedPtr _socket_timer;
 

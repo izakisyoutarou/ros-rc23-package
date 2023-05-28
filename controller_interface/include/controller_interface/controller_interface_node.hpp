@@ -76,7 +76,7 @@ namespace controller_interface
             rclcpp::TimerBase::SharedPtr _pub_heartbeat;
             rclcpp::TimerBase::SharedPtr _pub_timer_convergence;
             rclcpp::TimerBase::SharedPtr _socket_timer;
-            // rclcpp::TimerBase::SharedPtr _start_timer;
+            rclcpp::TimerBase::SharedPtr _start_timer;
 
             //QoS
             rclcpp::QoS _qos = rclcpp::QoS(10);

@@ -283,10 +283,12 @@ void Sequencer::_recv_robot_state(const unsigned char data[2]){
     }
     else{
         current_inject_state = state[0];
-        auto msg_state = std::make_shared<std_msgs::msg::String>();
-        msg_state->data = current_inject_state;
-        publisher_inject_state->publish(*msg_state);
     }
+
+    // 射出状態を送信
+    auto msg_state = std::make_shared<std_msgs::msg::String>();
+    msg_state->data = current_inject_state;
+    publisher_inject_state->publish(*msg_state);
 
     // 各状態での射出可能ポールのリストアップ
     string aimable_poles_file_path;
